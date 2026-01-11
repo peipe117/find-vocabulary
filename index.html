@@ -1,3 +1,13 @@
+<!-- 
+  【學華語向前走 Book 2 - 全生詞挑戰版】
+  版本：2025-Book2-CounterFinal
+  
+  更新日誌：
+  1. [Fix] 累積人次邏輯修正：
+     - 在本機/預覽環境下，設定完提示文字後直接 return，避免後續嘗試連線造成錯誤覆蓋。
+     - 強制使用 https 協定載入計數器腳本，提高相容性。
+  2. [System] 這是包含所有功能 (Wake Lock, Copy Result, Custom Words, Styles) 的最終完整版。
+-->
 
 <!DOCTYPE html>
 <html lang="zh-TW">
@@ -964,12 +974,15 @@
             const initPublicCounter = () => {
                 const display = ui.visitorCountDisplay;
                 
-                // 1. 本機/預覽環境檢測
+                // 1. 本機/預覽環境檢測 (Early Return)
+                // 如果是本機檔案 (file:) 或 預覽 Blob (blob:)，直接顯示提示並停止執行
                 if (location.protocol === 'file:' || location.protocol === 'blob:') {
                     display.textContent = "預覽模式 (無計數)";
-                } else {
-                    display.textContent = "統計中...";
+                    display.style.color = '#9CA3AF'; // 灰色
+                    return; // <--- 關鍵修正：停止往下執行
                 }
+
+                display.textContent = "統計中...";
 
                 // 2. 建立 DOM
                 if (!document.getElementById('busuanzi_container_site_uv')) {
@@ -994,7 +1007,7 @@
                 // 4. 載入腳本 (加入錯誤處理)
                 const script = document.createElement('script');
                 script.async = true;
-                script.src = "//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js";
+                script.src = "https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js";
                 
                 script.onerror = () => {
                     display.textContent = "暫無數據"; // 服務連不上時顯示
