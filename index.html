@@ -1,21 +1,10 @@
-<!-- 
-  【學華語向前走 Book 2 - 全生詞挑戰版】
-  版本：2025-Book2-FooterBorderFix
-  
-  更新日誌：
-  1. [UI Fix] 修正下方目標欄位 (footer-panel) 的邊線樣式：
-     - 改為四邊完整邊框 (2px solid #6EE7B7)，與上方棋盤風格統一。
-     - 圓角調整為四周皆圓 (1.25rem)，不再只是上方圓角。
-     - 調整陰影方向，使其成為獨立的卡片式設計。
-  2. [System] 保持所有功能 (Wake Lock, Copy Result, Custom Words, etc.)。
--->
 
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>學華語向前走(二) 生詞大挑戰</title>
+    <title>生詞大挑戰</title>
 </head>
 <body style="margin:0; padding:0;">
 
@@ -87,8 +76,10 @@
                 .inner-wrapper { width: 100%; max-width: 550px; margin: 0 auto; display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden; border-radius: 1rem; }
                 
                 header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-                .title-group { display: flex; align-items: center; gap: 0.5rem; }
-                h1 { font-size: 1.25rem; font-weight: 700; color: #064E3B; margin: 0; }
+                .title-group { display: flex; align-items: center; gap: 0.75rem; }
+                h1 { font-size: 1.25rem; font-weight: 700; color: #064E3B; margin: 0; line-height: 1.2; }
+                .subtitle { font-size: 0.75rem; color: #059669; font-weight: 500; }
+                
                 .header-actions { display: flex; gap: 0.5rem; }
                 
                 button.icon-btn { padding: 0.5rem; border-radius: 9999px; border: none; background: transparent; color: #059669; cursor: pointer; transition: background-color 0.2s; display: flex; align-items: center; justify-content: center; }
@@ -319,7 +310,13 @@
             container.innerHTML = `
                 <div class="inner-wrapper">
                     <header>
-                        <div class="title-group">${svgs.brain} <h1>學華語向前走(二) 生詞大挑戰</h1></div>
+                        <div class="title-group">
+                            ${svgs.brain} 
+                            <div style="display: flex; flex-direction: column;">
+                                <h1>生詞大挑戰</h1>
+                                <span class="subtitle">學華語向前走第二冊</span>
+                            </div>
+                        </div>
                         <div class="header-actions">
                             <button class="icon-btn" id="btn-custom" title="自訂生詞">${svgs.edit}</button>
                             <button class="icon-btn" id="btn-print" title="列印">${svgs.print}</button>
@@ -965,38 +962,53 @@
 
             // --- initPublicCounter: 零設定公共計數器 (Busuanzi) ---
             const initPublicCounter = () => {
-                if (location.protocol === 'file:') {
-                    if (ui.visitorCountDisplay) ui.visitorCountDisplay.textContent = "本機模式 (無計數)";
-                    return;
+                const display = ui.visitorCountDisplay;
+                
+                // 1. 本機/預覽環境檢測
+                if (location.protocol === 'file:' || location.protocol === 'blob:') {
+                    display.textContent = "預覽模式 (無計數)";
+                } else {
+                    display.textContent = "統計中...";
                 }
 
-                // 1. 在 Light DOM (Document Body) 建立 Busuanzi 需要的 DOM 結構 (隱藏)
-                // Busuanzi 腳本只會在主文檔中尋找 ID，無法穿透 Shadow DOM
-                const proxyContainer = document.createElement('div');
-                proxyContainer.style.display = 'none';
-                proxyContainer.innerHTML = `<span id="busuanzi_container_site_uv"><span id="busuanzi_value_site_uv"></span></span>`;
-                document.body.appendChild(proxyContainer);
+                // 2. 建立 DOM
+                if (!document.getElementById('busuanzi_container_site_uv')) {
+                    const proxyContainer = document.createElement('div');
+                    proxyContainer.style.display = 'none';
+                    proxyContainer.innerHTML = `<span id="busuanzi_container_site_uv"><span id="busuanzi_value_site_uv"></span></span>`;
+                    document.body.appendChild(proxyContainer);
+                }
 
-                // 2. 載入 Busuanzi 腳本
+                // 3. 監聽數值變化
+                const targetNode = document.getElementById('busuanzi_value_site_uv');
+                if (targetNode) {
+                    const observer = new MutationObserver((mutations) => {
+                        if (targetNode.textContent) {
+                            display.textContent = targetNode.textContent;
+                            display.style.color = '#059669'; 
+                        }
+                    });
+                    observer.observe(targetNode, { childList: true, characterData: true, subtree: true });
+                }
+
+                // 4. 載入腳本 (加入錯誤處理)
                 const script = document.createElement('script');
                 script.async = true;
                 script.src = "//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js";
-                document.head.appendChild(script);
+                
+                script.onerror = () => {
+                    display.textContent = "暫無數據"; // 服務連不上時顯示
+                    display.style.color = '#999';
+                };
 
-                // 3. 監聽 Light DOM 數值變化，同步到 Shadow DOM
-                const targetNode = document.getElementById('busuanzi_value_site_uv');
-                if (targetNode) {
-                    const observer = new MutationObserver((mutationsList) => {
-                        for(const mutation of mutationsList) {
-                            if (mutation.type === 'childList' || mutation.type === 'characterData') {
-                                if (ui.visitorCountDisplay) {
-                                    ui.visitorCountDisplay.textContent = targetNode.textContent;
-                                }
-                            }
-                        }
-                    });
-                    observer.observe(targetNode, { attributes: true, childList: true, subtree: true, characterData: true });
-                }
+                // 5. 逾時處理：如果 5 秒後還是 "統計中..."，改為顯示 "服務連線中"
+                setTimeout(() => {
+                    if (display.textContent === "統計中...") {
+                        display.textContent = "服務連線中";
+                    }
+                }, 5000);
+
+                document.head.appendChild(script);
             };
             
             loadCustomStages(); // Load saved custom stages
