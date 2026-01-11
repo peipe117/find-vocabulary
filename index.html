@@ -1,11 +1,13 @@
 <!-- 
   【學華語向前走 Book 2 - 全生詞挑戰版】
-  版本：2025-Book2-Final-TitleUpdate
+  版本：2025-Book2-FooterBorderFix
   
   更新日誌：
-  1. [UI] 修改瀏覽器分頁標題 (Title) 為「生詞大挑戰」。
-  2. [UI] 保持「加入/書籤」按鈕的裝置分流邏輯。
-  3. [Feature] 維持所有遊戲功能 (Zero-Config Counter, Timer, etc.)。
+  1. [UI Fix] 修正下方目標欄位 (footer-panel) 的邊線樣式：
+     - 改為四邊完整邊框 (2px solid #6EE7B7)，與上方棋盤風格統一。
+     - 圓角調整為四周皆圓 (1.25rem)，不再只是上方圓角。
+     - 調整陰影方向，使其成為獨立的卡片式設計。
+  2. [System] 保持所有功能 (Wake Lock, Copy Result, Custom Words, etc.)。
 -->
 
 <!DOCTYPE html>
@@ -13,8 +15,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- 這裡就是瀏覽器分頁顯示的名稱 -->
-    <title>生詞大挑戰</title>
+    <title>學華語向前走(二) 生詞大挑戰</title>
 </head>
 <body style="margin:0; padding:0;">
 
@@ -65,7 +66,7 @@
                 return;
             }
 
-            // --- 2. PWA Meta Tags (動態注入到 head，確保單一檔案也能運作 PWA 特性) ---
+            // --- 2. PWA Meta Tags ---
             try {
                 if (!document.querySelector('meta[name="apple-mobile-web-app-capable"]')) {
                     const meta1 = document.createElement('meta'); meta1.name = "apple-mobile-web-app-capable"; meta1.content = "yes";
@@ -93,14 +94,49 @@
                 button.icon-btn { padding: 0.5rem; border-radius: 9999px; border: none; background: transparent; color: #059669; cursor: pointer; transition: background-color 0.2s; display: flex; align-items: center; justify-content: center; }
                 button.icon-btn:hover { background-color: #D1FAE5; }
                 
-                .info-panel { margin-bottom: 1rem; padding: 1rem; border-radius: 0.75rem; background-color: #ECFDF5; border: 1px solid #6EE7B7; color: #064E3B; font-size: 0.875rem; display: none; }
-                .info-panel.show { display: block; }
+                /* Controls 區域優化：改用 flex-end 對齊底部 */
+                .controls { padding: 0.5rem 0.75rem; border-radius: 0.75rem; background-color: #ECFDF5; border: 1px solid #6EE7B7; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: flex-end; gap: 8px; }
                 
-                .controls { padding: 0.5rem 0.75rem; border-radius: 0.75rem; background-color: #ECFDF5; border: 1px solid #6EE7B7; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
                 .select-wrapper { flex: 1; display: flex; flex-direction: column; }
                 .select-label { font-size: 0.75rem; font-weight: 500; margin-bottom: 0.25rem; opacity: 0.7; color: #064E3B; }
-                select { width: 100%; padding: 0.5rem; border-radius: 0.5rem; border: 1px solid #6EE7B7; background-color: white; color: #064E3B; font-size: 0.875rem; outline: none; }
-                .refresh-btn { padding: 0.5rem; border-radius: 0.5rem; background-color: white; color: #059669; border: 1px solid #6EE7B7; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+                
+                /* Select 樣式優化：強制高度與單箭頭 */
+                select { 
+                    width: 100%; 
+                    height: 38px; /* 強制高度 */
+                    padding: 0 2rem 0 0.75rem; /* 移除垂直 padding 改用 height 控制 */
+                    border-radius: 0.5rem; 
+                    border: 1px solid #6EE7B7; 
+                    background-color: white; 
+                    color: #064E3B; 
+                    font-size: 0.875rem; 
+                    outline: none; 
+                    appearance: none; 
+                    -webkit-appearance: none;
+                    -moz-appearance: none;
+                    /* 向下單箭頭 (Chevron Down) */
+                    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23059669' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+                    background-repeat: no-repeat;
+                    background-position: right 0.5rem center;
+                    background-size: 1rem;
+                    cursor: pointer;
+                    line-height: 1.3;
+                }
+                
+                .refresh-btn { 
+                    padding: 0; 
+                    border-radius: 0.5rem; 
+                    background-color: white; 
+                    color: #059669; 
+                    border: 1px solid #6EE7B7; 
+                    cursor: pointer; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center; 
+                    height: 38px; /* 強制高度 */
+                    width: 38px; 
+                    flex-shrink: 0; 
+                }
                 .refresh-btn:hover { background-color: #D1FAE5; }
                 
                 /* 計時器樣式 */
@@ -110,14 +146,13 @@
                     border: 1px solid #6EE7B7;
                     border-radius: 0.5rem;
                     padding: 0 12px;
-                    height: 38px;
+                    height: 38px; /* 強制高度 */
                     display: flex;
                     align-items: center;
                     font-weight: 700;
                     font-family: monospace;
                     font-size: 1rem;
                     white-space: nowrap;
-                    margin-top: 19px; /* align with select input */
                 }
 
                 .game-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; }
@@ -148,7 +183,7 @@
                 }
                 
                 .cell.active-start { background-color: #10B981 !important; color: white !important; transform: scale(0.95); box-shadow: inset 0 0 0 2px #6EE7B7; z-index: 5; }
-                .cell.found { background-color: #059669 !important; color: white !important; border-color: #D1FAE5; }
+                .cell.found { background-color: #059669 !important; color: white !important; border-color: #D1FAE5; animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
                 .cell:hover { background-color: #D1FAE5; }
                 
                 .modal-overlay { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background-color: rgba(240, 253, 244, 0.9); backdrop-filter: blur(4px); border-radius: 0.75rem; }
@@ -157,6 +192,7 @@
                 /* 層級設定 */
                 #start-modal { z-index: 10; }
                 #victory-modal { z-index: 20; }
+                #custom-modal { z-index: 90; }
                 #install-modal { z-index: 100; }
 
                 .modal-content { background-color: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 2px solid #6EE7B7; text-align: center; width: 85%; max-width: 320px; position: relative;}
@@ -165,6 +201,21 @@
                 .modal-btn:hover { background-color: #059669; transform: scale(1.05); }
                 .modal-btn:active { transform: scale(0.95); }
 
+                .modal-btn.danger { background-color: #EF4444; margin-top: 0.5rem; }
+                .modal-btn.danger:hover { background-color: #DC2626; }
+                /* 刪除確認狀態 */
+                .modal-btn.danger.confirming { background-color: #991B1B; animation: pulse 1s infinite; }
+                
+                .modal-btn.secondary { background-color: #9CA3AF; margin-top: 0.5rem; }
+                .modal-btn.secondary:hover { background-color: #6B7280; }
+
+                /* Inputs for Custom Modal */
+                .custom-input { width: 100%; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid #6EE7B7; margin-bottom: 1rem; font-size: 1rem; outline: none; transition: border-color 0.2s; }
+                .custom-input:focus { border-color: #059669; box-shadow: 0 0 0 2px #D1FAE5; }
+                .custom-label { display: block; text-align: left; font-size: 0.9rem; font-weight: 700; color: #064E3B; margin-bottom: 0.5rem; }
+                .custom-btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+                .custom-btn-group .modal-btn { flex: 1; min-width: 100px; }
+
                 /* Start Screen Specific */
                 #start-modal .modal-content { border-width: 4px; padding-top: 2rem; padding-bottom: 2rem; }
 
@@ -172,7 +223,17 @@
                 .install-step { text-align: left; font-size: 0.9rem; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 8px; color: #374151; line-height: 1.4; }
                 .step-num { background: #10B981; color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.75rem; font-weight: bold; margin-top: 2px; }
 
-                .footer-panel { margin-top: 1rem; background-color: white; padding: 1rem; border-radius: 1rem 1rem 0 0; box-shadow: 0 -4px 6px -1px rgba(0,0,0,0.05); border-top: 1px solid #6EE7B7; width: 100%; }
+                /* 修正：目標欄位樣式 */
+                .footer-panel { 
+                    margin-top: 1rem; 
+                    background-color: white; 
+                    padding: 1rem; 
+                    border-radius: 1.25rem; /* 四周圓角 */
+                    border: 2px solid #6EE7B7; /* 完整邊框 */
+                    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); 
+                    width: 100%; 
+                }
+                
                 .target-tags-wrapper { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
                 .target-tag { display: inline-flex; align-items: center; justify-content: center; padding: 0.375rem 0.75rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; transition: all 0.3s; border: 1px solid transparent; background-color: #ECFDF5; color: #064E3B; }
                 .target-tag.found { background-color: #6EE7B7; opacity: 0.6; position: relative; text-decoration: line-through; color: #064E3B; }
@@ -182,6 +243,8 @@
                 .visitor-counter { font-size: 0.8rem; background-color: #ECFDF5; padding: 2px 8px; border-radius: 10px; color: #059669; display: inline-flex; align-items: center; gap: 4px; }
                 
                 @keyframes bounceIn { 0% { transform: scale(0.8); opacity: 0; } 60% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); } }
+                @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
+                @keyframes pop { 0% { transform: scale(0.8); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
             `;
 
             const styleEl = document.createElement('style');
@@ -237,13 +300,15 @@
                 iosShare: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>',
                 menuDots: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>',
                 plusSquare: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>',
-                rocket: '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:#10B981; margin-bottom:1rem;"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>'
+                rocket: '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:#10B981; margin-bottom:1rem;"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>',
+                edit: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+                copy: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>'
             };
 
             let state = {
                 stage: STAGES.L2_01,
                 board: [], targets: [], foundWords: [], firstSelection: null, selection: [], deferredPrompt: null,
-                startTime: 0, timerInterval: null, gameStarted: false
+                startTime: 0, timerInterval: null, gameStarted: false, wakeLock: null
             };
 
             window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); state.deferredPrompt = e; });
@@ -254,21 +319,14 @@
             container.innerHTML = `
                 <div class="inner-wrapper">
                     <header>
-                        <div class="title-group">${svgs.brain} <h1>學華語向前走第二冊 生詞大挑戰</h1></div>
+                        <div class="title-group">${svgs.brain} <h1>學華語向前走(二) 生詞大挑戰</h1></div>
                         <div class="header-actions">
+                            <button class="icon-btn" id="btn-custom" title="自訂生詞">${svgs.edit}</button>
+                            <button class="icon-btn" id="btn-print" title="列印">${svgs.print}</button>
                             <button class="icon-btn" id="btn-install" title="加入/書籤">${svgs.download}</button>
                             <button class="icon-btn" id="btn-fullscreen" title="全螢幕">${svgs.fullscreen}</button>
-                            <button class="icon-btn" id="btn-print" title="列印">${svgs.print}</button>
-                            <button class="icon-btn" id="btn-info" title="說明">${svgs.info}</button>
                         </div>
                     </header>
-
-                    <div class="info-panel" id="info-panel">
-                        <div style="font-weight: bold; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; color: #10B981;">
-                            ${svgs.eye} 說明
-                        </div>
-                        <span id="brain-tip-text"></span>
-                    </div>
 
                     <div class="controls">
                         <div class="select-wrapper">
@@ -287,7 +345,7 @@
                     <div class="game-area">
                         <div class="grid-container" id="grid-container"></div>
                         
-                        <!-- 準備開始畫面 (移回此處，只蓋住 grid-container) -->
+                        <!-- 準備開始畫面 -->
                         <div class="modal-overlay show" id="start-modal" style="background-color: rgba(240, 253, 244, 0.95);">
                             <div class="modal-content">
                                 ${svgs.rocket}
@@ -297,13 +355,14 @@
                             </div>
                         </div>
 
-                        <!-- 勝利視窗 (移回此處，只蓋住 grid-container) -->
+                        <!-- 勝利視窗 -->
                         <div class="modal-overlay" id="victory-modal">
                             <div class="modal-content">
                                 ${svgs.trophy}
                                 <h2 style="font-size: 1.25rem; font-weight: 700; color: #064E3B; margin-bottom: 4px;" id="victory-title">太棒了！</h2>
                                 <p style="font-size: 0.875rem; color: #064E3B; opacity: 0.8; margin-bottom: 0.5rem;">全部生詞都找到了！</p>
                                 <p style="font-size: 1rem; color: #059669; font-weight: bold; margin-bottom: 1rem;">耗時：<span id="final-time">00:00</span></p>
+                                <button class="modal-btn" id="btn-copy-result" style="background-color: #3B82F6; margin-bottom: 8px;">${svgs.copy} 複製成績</button>
                                 <button class="modal-btn" id="btn-replay">再玩一次</button>
                             </div>
                         </div>
@@ -326,7 +385,32 @@
                         </div>
                     </footer>
 
-                    <!-- 安裝/書籤教學 (保持在最外層，z-index: 100，覆蓋全螢幕) -->
+                    <!-- 自訂生詞視窗 -->
+                    <div class="modal-overlay" id="custom-modal">
+                        <div class="modal-content" style="text-align: left; width: 90%; max-width: 400px;">
+                            <button class="modal-close-btn" id="btn-close-custom">×</button>
+                            <h3 id="custom-modal-title" style="margin:0 0 1rem; color:#064E3B; text-align:center;">自訂生詞</h3>
+                            
+                            <label class="custom-label">標題</label>
+                            <input type="text" id="custom-title" class="custom-input" value="我的生詞表" placeholder="輸入課程標題">
+                            
+                            <label class="custom-label">生詞列表 (換行或逗號分隔)</label>
+                            <textarea id="custom-words" class="custom-input" rows="5" placeholder="例如：&#10;蘋果&#10;香蕉&#10;西瓜"></textarea>
+                            
+                            <!-- 錯誤訊息顯示區 (取代 alert) -->
+                            <div id="custom-error-msg" style="color:#EF4444; font-size:0.9rem; margin-bottom:10px; text-align:center; display:none;"></div>
+
+                            <div class="custom-btn-group">
+                                <button class="modal-btn" id="btn-start-custom">建立並開始</button>
+                            </div>
+                            <div class="custom-btn-group" id="edit-buttons-row" style="display:none; margin-top:10px;">
+                                <button class="modal-btn secondary" id="btn-new-custom">建立新的</button>
+                                <button class="modal-btn danger" id="btn-delete-custom">刪除此課程</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 安裝/書籤教學 -->
                     <div class="modal-overlay" id="install-modal">
                         <div class="modal-content" style="text-align:left;">
                             <button class="modal-close-btn" id="btn-close-install">×</button>
@@ -347,8 +431,6 @@
                 stageSelect: shadow.querySelector('#stage-select'),
                 btnRefresh: shadow.querySelector('#btn-refresh'),
                 btnReplay: shadow.querySelector('#btn-replay'),
-                btnInfo: shadow.querySelector('#btn-info'),
-                infoPanel: shadow.querySelector('#info-panel'),
                 btnPrint: shadow.querySelector('#btn-print'),
                 btnFullscreen: shadow.querySelector('#btn-fullscreen'),
                 btnInstall: shadow.querySelector('#btn-install'),
@@ -367,7 +449,21 @@
                 timerDisplay: shadow.querySelector('#timer-display'),
                 finalTime: shadow.querySelector('#final-time'),
                 victoryTitle: shadow.querySelector('#victory-title'),
-                visitorCountDisplay: shadow.querySelector('#visitor-count-display')
+                visitorCountDisplay: shadow.querySelector('#visitor-count-display'),
+                btnCopyResult: shadow.querySelector('#btn-copy-result'),
+                
+                // Custom UI
+                btnCustom: shadow.querySelector('#btn-custom'),
+                customModal: shadow.querySelector('#custom-modal'),
+                btnCloseCustom: shadow.querySelector('#btn-close-custom'),
+                btnStartCustom: shadow.querySelector('#btn-start-custom'),
+                customTitle: shadow.querySelector('#custom-title'),
+                customWords: shadow.querySelector('#custom-words'),
+                editButtonsRow: shadow.querySelector('#edit-buttons-row'),
+                btnDeleteCustom: shadow.querySelector('#btn-delete-custom'),
+                btnNewCustom: shadow.querySelector('#btn-new-custom'),
+                customModalTitle: shadow.querySelector('#custom-modal-title'),
+                customErrorMsg: shadow.querySelector('#custom-error-msg')
             };
 
             // --- Helper: Format Time ---
@@ -377,6 +473,25 @@
                 return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
             }
 
+            // --- Wake Lock Logic ---
+            async function requestWakeLock() {
+                try {
+                    if ('wakeLock' in navigator) {
+                        state.wakeLock = await navigator.wakeLock.request('screen');
+                    }
+                } catch (err) {
+                    console.log(`${err.name}, ${err.message}`);
+                }
+            }
+
+            function releaseWakeLock() {
+                if (state.wakeLock !== null) {
+                    state.wakeLock.release()
+                        .then(() => { state.wakeLock = null; });
+                }
+            }
+
+            // Game Logic
             function startTimer() {
                 if (state.timerInterval) clearInterval(state.timerInterval);
                 state.startTime = Date.now();
@@ -441,7 +556,6 @@
                 state.gameStarted = false; // Reset game started flag
                 
                 ui.stageSelect.value = stageKey;
-                ui.brainTip.textContent = state.stage.brainTip;
                 ui.descText.textContent = state.stage.description;
                 ui.dirHint.textContent = '可直、橫、斜向尋找';
                 ui.modal.classList.remove('show');
@@ -556,6 +670,7 @@
             function checkVictory() {
                 if (state.foundWords.length === state.targets.length) {
                     stopTimer(); 
+                    releaseWakeLock(); // Release lock
                     ui.finalTime.textContent = ui.timerDisplay.textContent;
                     // Random encouragement
                     const randomMsg = ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)];
@@ -573,13 +688,22 @@
             ui.btnGameStart.addEventListener('click', () => {
                 state.gameStarted = true;
                 ui.startModal.classList.remove('show');
+                requestWakeLock(); // Request screen keep awake
                 startTimer();
+            });
+
+            ui.btnCopyResult.addEventListener('click', () => {
+                const text = `生詞大挑戰 - ${state.stage.name}\n${ui.victoryTitle.textContent} 耗時：${ui.finalTime.textContent}`;
+                navigator.clipboard.writeText(text).then(() => {
+                    const originalText = ui.btnCopyResult.innerHTML;
+                    ui.btnCopyResult.innerHTML = "已複製！";
+                    setTimeout(() => ui.btnCopyResult.innerHTML = originalText, 2000);
+                });
             });
 
             ui.stageSelect.addEventListener('change', (e) => initGame(e.target.value));
             ui.btnRefresh.addEventListener('click', () => initGame(state.stage.id));
             ui.btnReplay.addEventListener('click', () => initGame(state.stage.id));
-            ui.btnInfo.addEventListener('click', () => ui.infoPanel.classList.toggle('show'));
             ui.btnFullscreen.addEventListener('click', () => {
                 if (!document.fullscreenElement) {
                     document.getElementById('huayu-book2-root').requestFullscreen().catch(err => alert(`Error: ${err.message}`));
@@ -649,6 +773,196 @@
             });
             ui.btnCloseInstall.addEventListener('click', () => ui.installModal.classList.remove('show'));
 
+
+            // --- LocalStorage Logic ---
+            const STORAGE_KEY = 'huayu_book2_custom_stages_v2';
+
+            function loadCustomStages() {
+                try {
+                    const stored = localStorage.getItem(STORAGE_KEY);
+                    if (stored) {
+                        const customs = JSON.parse(stored);
+                        Object.keys(customs).forEach(key => {
+                            STAGES[key] = customs[key];
+                            // Add to select if not exists
+                            if (!ui.stageSelect.querySelector(`option[value="${key}"]`)) {
+                                const option = document.createElement('option');
+                                option.value = key;
+                                option.text = `★ ${customs[key].name}`;
+                                ui.stageSelect.add(option);
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.error("Failed to load custom stages", e);
+                }
+            }
+
+            function saveCustomStages() {
+                const customs = {};
+                Object.keys(STAGES).forEach(key => {
+                    if (STAGES[key].isCustom) {
+                        customs[key] = STAGES[key];
+                    }
+                });
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(customs));
+            }
+
+
+            // --- Custom Modal Logic ---
+            
+            // Helper to show error
+            function showCustomError(msg) {
+                ui.customErrorMsg.textContent = msg;
+                ui.customErrorMsg.style.display = 'block';
+                setTimeout(() => {
+                    ui.customErrorMsg.style.display = 'none';
+                }, 3000);
+            }
+
+            ui.btnCustom.addEventListener('click', () => {
+                const currentId = state.stage.id;
+                // Check if current is custom
+                if (STAGES[currentId] && STAGES[currentId].isCustom) {
+                    // Edit Mode
+                    ui.customModalTitle.textContent = "修改自訂生詞";
+                    ui.customTitle.value = STAGES[currentId].name;
+                    ui.customWords.value = STAGES[currentId].words.join('\n');
+                    ui.btnStartCustom.textContent = "更新並開始";
+                    ui.editButtonsRow.style.display = 'flex';
+                } else {
+                    // Create Mode
+                    ui.customModalTitle.textContent = "自訂生詞";
+                    ui.customTitle.value = "我的生詞表";
+                    ui.customWords.value = "";
+                    ui.btnStartCustom.textContent = "建立並開始";
+                    ui.editButtonsRow.style.display = 'none';
+                }
+                ui.customModal.classList.add('show');
+            });
+
+            ui.btnCloseCustom.addEventListener('click', () => {
+                // Reset delete state when closing
+                deleteConfirmation = false;
+                ui.btnDeleteCustom.classList.remove('confirming');
+                ui.btnDeleteCustom.textContent = "刪除此課程";
+                ui.customModal.classList.remove('show');
+            });
+
+            // Create New from Edit Mode
+            ui.btnNewCustom.addEventListener('click', () => {
+                ui.customModalTitle.textContent = "自訂生詞";
+                ui.customTitle.value = "我的生詞表";
+                ui.customWords.value = "";
+                ui.btnStartCustom.textContent = "建立並開始";
+                ui.editButtonsRow.style.display = 'none';
+            });
+
+            // Delete Custom (No confirm() alert used)
+            let deleteConfirmation = false;
+            
+            ui.btnDeleteCustom.addEventListener('click', () => {
+                if (!deleteConfirmation) {
+                    // First click: Request confirmation
+                    deleteConfirmation = true;
+                    ui.btnDeleteCustom.textContent = "確定要刪除嗎？(點擊)";
+                    ui.btnDeleteCustom.classList.add('confirming');
+                    
+                    // Reset after 3 seconds if not clicked
+                    setTimeout(() => {
+                        deleteConfirmation = false;
+                        if(ui.btnDeleteCustom) {
+                            ui.btnDeleteCustom.textContent = "刪除此課程";
+                            ui.btnDeleteCustom.classList.remove('confirming');
+                        }
+                    }, 3000);
+                    return;
+                }
+
+                // Second click: Perform Delete
+                const currentId = state.stage.id;
+                delete STAGES[currentId];
+                const option = ui.stageSelect.querySelector(`option[value="${currentId}"]`);
+                if (option) option.remove();
+                
+                saveCustomStages();
+                initGame('L2_01'); // Back to default
+                
+                // Reset UI state
+                deleteConfirmation = false;
+                ui.btnDeleteCustom.textContent = "刪除此課程";
+                ui.btnDeleteCustom.classList.remove('confirming');
+                ui.customModal.classList.remove('show');
+            });
+
+            ui.btnStartCustom.addEventListener('click', () => {
+                const title = ui.customTitle.value.trim() || '自訂課程';
+                const text = ui.customWords.value.trim();
+                
+                if (!text) {
+                    showCustomError('請輸入生詞！');
+                    return;
+                }
+
+                // Split by newline, comma, and Chinese comma
+                const words = text.split(/[\n,、]/).map(w => w.trim()).filter(w => w.length > 0);
+                
+                if (words.length === 0) {
+                    showCustomError('請輸入有效的生詞！');
+                    return;
+                }
+
+                // Calculate Grid Size dynamicall based on word content
+                const totalChars = words.join('').length;
+                const longestWord = Math.max(...words.map(w => w.length));
+                // Base calculation: sqrt(totalChars * 2.5) for enough space
+                let calcSize = Math.ceil(Math.sqrt(totalChars * 2.5));
+                // Ensure grid is at least bigger than the longest word (+2 padding)
+                calcSize = Math.max(11, longestWord + 2, calcSize);
+                // Cap at reasonable max to prevent performance issues on mobile
+                calcSize = Math.min(20, calcSize);
+
+                // Determine ID: Are we editing or creating?
+                let customId;
+                if (STAGES[state.stage.id] && STAGES[state.stage.id].isCustom && ui.editButtonsRow.style.display !== 'none') {
+                    // Update existing
+                    customId = state.stage.id;
+                } else {
+                    // Create new
+                    customId = 'custom_' + Date.now();
+                }
+
+                STAGES[customId] = {
+                    id: customId,
+                    name: title,
+                    description: '自訂生詞挑戰',
+                    gridSize: calcSize,
+                    directions: [[0, 1], [1, 0], [1, 1]],
+                    words: words,
+                    targetCount: words.length,
+                    brainTip: '自訂挑戰',
+                    isCustom: true
+                };
+
+                // Update select: if exists update text, else add
+                let option = ui.stageSelect.querySelector(`option[value="${customId}"]`);
+                if (option) {
+                    option.text = `★ ${title}`;
+                } else {
+                    option = document.createElement('option');
+                    option.value = customId;
+                    option.text = `★ ${title}`;
+                    ui.stageSelect.add(option);
+                }
+                
+                ui.stageSelect.value = customId;
+                saveCustomStages(); // Save to localStorage
+
+                initGame(customId);
+                ui.customModal.classList.remove('show');
+            });
+
+
             // --- initPublicCounter: 零設定公共計數器 (Busuanzi) ---
             const initPublicCounter = () => {
                 if (location.protocol === 'file:') {
@@ -685,6 +999,7 @@
                 }
             };
             
+            loadCustomStages(); // Load saved custom stages
             initGame();
             initPublicCounter();
         }
