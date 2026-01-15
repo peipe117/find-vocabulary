@@ -1,18 +1,11 @@
 <!-- 
   【學華語向前走 Book 2 - 全生詞挑戰版】
-  版本：2025-Book2-Final-Ultimate-Fix-v4
+  版本：2025-Book2-Final-Ultimate-PrintFontFix
   
-  修復日誌：
-  1. [Critical Fix] 修復 SyntaxError: Unexpected end of input：
-     - 問題來源：列印功能中的 HTML 模板字串包含了未跳脫的 </script> 標籤，導致瀏覽器提早結束腳本解析。
-     - 解決方案：將字串內的 </script> 修改為 <\/script>。
-  2. [System] 完整保留所有功能：
-     - 自訂生詞 (編輯/刪除/儲存)
-     - 螢幕防休眠 (Wake Lock)
-     - 複製成績
-     - 累積人次計數器
-     - 雙擊刪除確認
-     - 介面完美對齊
+  更新日誌：
+  1. [UI Fix] 調整列印版面樣式：
+     - 將 PDF 格子內的字體大小 (.cell font-size) 從 16px 放大至 24px，提升閱讀清晰度。
+  2. [System] 保持所有現有功能 (修復後的 script 標籤、自訂生詞、防休眠等)。
 -->
 
 <!DOCTYPE html>
@@ -755,7 +748,7 @@
                                 display: flex; 
                                 justify-content: center; 
                                 align-items: center; 
-                                font-size: 16px; 
+                                font-size: 24px; /* Print font size adjusted */
                                 font-weight: bold; 
                                 color: #000;
                             }
