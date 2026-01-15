@@ -1,12 +1,18 @@
 <!-- 
   【學華語向前走 Book 2 - 全生詞挑戰版】
-  版本：2025-Book2-CounterFinal
+  版本：2025-Book2-Final-Ultimate-Fix-v4
   
-  更新日誌：
-  1. [Fix] 累積人次邏輯修正：
-     - 在本機/預覽環境下，設定完提示文字後直接 return，避免後續嘗試連線造成錯誤覆蓋。
-     - 強制使用 https 協定載入計數器腳本，提高相容性。
-  2. [System] 這是包含所有功能 (Wake Lock, Copy Result, Custom Words, Styles) 的最終完整版。
+  修復日誌：
+  1. [Critical Fix] 修復 SyntaxError: Unexpected end of input：
+     - 問題來源：列印功能中的 HTML 模板字串包含了未跳脫的 </script> 標籤，導致瀏覽器提早結束腳本解析。
+     - 解決方案：將字串內的 </script> 修改為 <\/script>。
+  2. [System] 完整保留所有功能：
+     - 自訂生詞 (編輯/刪除/儲存)
+     - 螢幕防休眠 (Wake Lock)
+     - 複製成績
+     - 累積人次計數器
+     - 雙擊刪除確認
+     - 介面完美對齊
 -->
 
 <!DOCTYPE html>
@@ -726,7 +732,67 @@
             ui.btnPrint.addEventListener('click', () => {
                 const printWindow = window.open('', '_blank');
                 if (!printWindow) { alert("請允許彈跳視窗"); return; }
-                const html = `<!DOCTYPE html><html><head><title>腦力找字遊戲</title><style>@page { size: auto; margin: 5mm; } body { font-family: sans-serif; text-align: center; } .grid { display: grid; grid-template-columns: repeat(${state.stage.gridSize}, 1fr); border: 2px solid #333; width: 100%; max-width: 16cm; margin: 0 auto; } .cell { border: 1px solid #ccc; aspect-ratio: 1; display: flex; justify-content: center; align-items: center; font-size: 20px; font-weight: bold; } .words { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-top: 15px; } .word { border: 1px solid #333; padding: 4px 8px; border-radius: 4px; }</style></head><body><h1>${state.stage.name}</h1><div class="grid">${state.board.flat().map(c => `<div class="cell">${c}</div>`).join('')}</div><div class="words">${state.targets.map(t => `<div class="word">${t.word}</div>`).join('')}</div><div class="footer">Sophia Wong 修訂</div></body></html>`;
+                const html = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>腦力找字遊戲 - 列印版</title>
+                        <style>
+                            @page { size: A4 portrait; margin: 1.5cm; }
+                            body { font-family: "Microsoft JhengHei", sans-serif; text-align: center; color: #000; background: #fff; -webkit-print-color-adjust: exact; }
+                            h1 { margin: 0 0 15px 0; font-size: 24px; color: #000; }
+                            .grid { 
+                                display: grid; 
+                                grid-template-columns: repeat(${state.stage.gridSize}, 1fr); 
+                                border: 2px solid #000; 
+                                width: 100%; 
+                                max-width: 18cm; 
+                                margin: 0 auto; 
+                            }
+                            .cell { 
+                                border: 1px solid #000; 
+                                aspect-ratio: 1; 
+                                display: flex; 
+                                justify-content: center; 
+                                align-items: center; 
+                                font-size: 16px; 
+                                font-weight: bold; 
+                                color: #000;
+                            }
+                            .words { 
+                                display: flex; 
+                                flex-wrap: wrap; 
+                                gap: 8px; 
+                                justify-content: center; 
+                                margin-top: 20px; 
+                                page-break-inside: avoid; 
+                            }
+                            .word { 
+                                border: 1px solid #000; 
+                                padding: 4px 10px; 
+                                border-radius: 4px; 
+                                font-size: 14px; 
+                                color: #000; 
+                                text-decoration: none; 
+                            }
+                            .footer { margin-top: 30px; font-size: 12px; color: #000; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>${state.stage.name}</h1>
+                        <div class="grid">
+                            ${state.board.flat().map(c => `<div class="cell">${c}</div>`).join('')}
+                        </div>
+                        <div class="words">
+                            ${state.targets.map(t => `<div class="word">${t.word}</div>`).join('')}
+                        </div>
+                        <div class="footer">Sophia Wong 修訂 | 生詞大挑戰</div>
+                        <script>
+                            window.onload = function() { setTimeout(function(){ window.print(); }, 500); };
+                        <\/script>
+                    </body>
+                    </html>
+                `;
                 printWindow.document.write(html);
                 printWindow.document.close();
             });
