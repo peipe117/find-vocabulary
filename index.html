@@ -1,12 +1,15 @@
 <!-- 
   【學華語向前走 Book 2 - 全生詞挑戰版】
-  版本：2025-Book2-Final-Ultimate-BordersRevert
+  版本：2025-Book2-Final-Ultimate-VoiceSelect
   
   更新日誌：
-  1. [UI/Print Fix] 格線樣式還原：
-     - 網頁版：Grid 容器底色還原為白色，取消深綠底色透光法。
-     - 列印版：取消「黑色底色透光法」，改回標準的 .cell { border: 1px solid #000 }，確保線條樣式傳統且清晰。
-  2. [System] 保持所有現有功能 (自訂生詞、防休眠、計數器、雙擊刪除)。
+  1. [Feature] 新增「選擇聲音」功能：
+     - 在「自訂生詞」視窗中新增下拉選單。
+     - 自動偵測裝置內所有中文語系 (zh-TW, zh-HK, zh-CN) 的聲音。
+     - 選擇後自動儲存設定 (LocalStorage)。
+     - 切換聲音時自動播放測試音。
+  2. [System] 優化語音載入邏輯 (解決 Chrome 需等待 voiceschanged 事件的問題)。
+  3. [System] 保持所有現有功能。
 -->
 
 <!DOCTYPE html>
@@ -337,7 +340,10 @@
                 // Pause State
                 isPaused: false,
                 totalPausedTime: 0,
-                pauseStartTime: 0
+                pauseStartTime: 0,
+                // Voice
+                voices: [],
+                selectedVoiceURI: localStorage.getItem('huayu_book2_voice_uri') || null
             };
 
             window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); state.deferredPrompt = e; });
@@ -438,6 +444,9 @@
                             <button class="modal-close-btn" id="btn-close-custom">×</button>
                             <h3 id="custom-modal-title" style="margin:0 0 1rem; color:#064E3B; text-align:center;">自訂生詞</h3>
                             
+                            <label class="custom-label">選擇聲音 (若裝置支援)</label>
+                            <select id="voice-select" class="custom-input" style="background-image:none; padding-right: 0.75rem;"></select>
+
                             <label class="custom-label">標題</label>
                             <input type="text" id="custom-title" class="custom-input" value="我的生詞表" placeholder="輸入課程標題">
                             
@@ -522,7 +531,8 @@
                 btnDeleteCustom: shadow.querySelector('#btn-delete-custom'),
                 btnNewCustom: shadow.querySelector('#btn-new-custom'),
                 customModalTitle: shadow.querySelector('#custom-modal-title'),
-                customErrorMsg: shadow.querySelector('#custom-error-msg')
+                customErrorMsg: shadow.querySelector('#custom-error-msg'),
+                voiceSelect: shadow.querySelector('#voice-select')
             };
 
             // --- Helper: Format Time ---
@@ -530,6 +540,58 @@
                 const m = Math.floor(seconds / 60);
                 const s = Math.floor(seconds % 60);
                 return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }
+
+            // --- Speech Synthesis ---
+            function loadVoices() {
+                const voices = window.speechSynthesis.getVoices();
+                state.voices = voices.filter(v => v.lang.includes('zh') || v.lang.includes('CN') || v.lang.includes('HK') || v.lang.includes('TW'));
+                
+                ui.voiceSelect.innerHTML = '';
+                if (state.voices.length === 0) {
+                    const option = document.createElement('option');
+                    option.text = "預設中文";
+                    ui.voiceSelect.add(option);
+                    return;
+                }
+
+                state.voices.forEach(voice => {
+                    const option = document.createElement('option');
+                    option.textContent = `${voice.name} (${voice.lang})`;
+                    option.value = voice.voiceURI;
+                    ui.voiceSelect.appendChild(option);
+                });
+
+                // Restore selection
+                if (state.selectedVoiceURI) {
+                    ui.voiceSelect.value = state.selectedVoiceURI;
+                }
+            }
+
+            if (window.speechSynthesis) {
+                window.speechSynthesis.onvoiceschanged = loadVoices;
+                loadVoices();
+            }
+
+            ui.voiceSelect.addEventListener('change', () => {
+                state.selectedVoiceURI = ui.voiceSelect.value;
+                localStorage.setItem('huayu_book2_voice_uri', state.selectedVoiceURI);
+                speakWord('你好'); // Test sound
+            });
+
+            function speakWord(text) {
+                if (!window.speechSynthesis) return;
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-TW';
+                utterance.rate = 0.8; 
+                
+                if (state.selectedVoiceURI) {
+                    const selectedVoice = state.voices.find(v => v.voiceURI === state.selectedVoiceURI);
+                    if (selectedVoice) utterance.voice = selectedVoice;
+                }
+
+                window.speechSynthesis.speak(utterance);
             }
 
             // --- Wake Lock Logic ---
@@ -728,6 +790,7 @@
                     const matchedTarget = state.targets.find(t => !state.foundWords.includes(t.word) && t.word === char);
                     if (matchedTarget) {
                         state.foundWords.push(matchedTarget.word);
+                        speakWord(matchedTarget.word);
                         checkVictory();
                         state.firstSelection = null;
                     } else {
@@ -759,6 +822,7 @@
                     );
                     if (matchedTarget) {
                         state.foundWords.push(matchedTarget.word);
+                        speakWord(matchedTarget.word);
                         checkVictory();
                     }
                 }
