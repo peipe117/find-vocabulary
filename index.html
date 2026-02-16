@@ -1,15 +1,16 @@
 <!-- 
   【學華語向前走 Book 2 - 全生詞挑戰版】
-  版本：2025-Book2-Final-Ultimate-VoiceSelect
+  版本：2025-Book2-Final-Ultimate-ShareLink
   
   更新日誌：
-  1. [Feature] 新增「選擇聲音」功能：
-     - 在「自訂生詞」視窗中新增下拉選單。
-     - 自動偵測裝置內所有中文語系 (zh-TW, zh-HK, zh-CN) 的聲音。
-     - 選擇後自動儲存設定 (LocalStorage)。
-     - 切換聲音時自動播放測試音。
-  2. [System] 優化語音載入邏輯 (解決 Chrome 需等待 voiceschanged 事件的問題)。
-  3. [System] 保持所有現有功能。
+  1. [Feature] 新增「課程連結分享」功能：
+     - 支援 URL 參數啟動：網址帶入 ?stage=L2_XX 可直接進入該課。
+     - Header 新增分享按鈕 (Link Icon)。
+     - 點擊分享可生成當前課程的專屬連結 (QR Code 準備就緒)。
+  2. [Feature] 支援「自訂生詞」分享：
+     - 自訂的生詞表會被編碼 (Base64) 進網址中。
+     - 老師設定好後產生連結，學生點連結即可直接玩該自訂課程，無需手動輸入。
+  3. [System] 保持所有功能 (語音、防休眠、計數器、列印)。
 -->
 
 <!DOCTYPE html>
@@ -186,13 +187,14 @@
                     width: 100%; 
                     aspect-ratio: 1; 
                     display: flex; align-items: center; justify-content: center; 
+                    /* [UI Fix] 還原字體大小設定 */
                     font-size: clamp(0.8rem, 3.5vw, 1.25rem);
                     font-weight: 500; 
                     border-radius: 0.25rem; 
                     cursor: pointer; 
                     transition: all 0.2s ease; 
                     background-color: white; color: #374151; 
-                    border: 2px solid transparent; /* 還原透明邊框 */
+                    border: 2px solid transparent; 
                 }
                 
                 .cell.active-start { background-color: #10B981 !important; color: white !important; transform: scale(0.95); box-shadow: inset 0 0 0 2px #6EE7B7; z-index: 5; }
@@ -206,6 +208,7 @@
                 #victory-modal { z-index: 20; }
                 #pause-modal { z-index: 30; }
                 #custom-modal { z-index: 90; }
+                #share-modal { z-index: 95; }
                 #install-modal { z-index: 100; }
 
                 .modal-content { background-color: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 2px solid #6EE7B7; text-align: center; width: 85%; max-width: 320px; position: relative;}
@@ -284,7 +287,7 @@
                 L2_03: { id: 'L2_03', name: '第三課 去超級市場', description: '找出本課的生詞', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['冰淇淋' ,'超級市場' ,'東西' ,'附近' ,'可以' ,'米' ,'買' ,'牛肉' ,'巧克力' ,'青菜' ,'糖果' ,'要' ,'魚'], targetCount: 99, brainTip: 'Sophia Wong 修訂' },
                 L2_04: { id: 'L2_04', name: '第四課 我想吃漢堡', description: '找出本課的生詞', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['出去' ,'蛋炒飯' ,'餓' ,'漢堡' ,'快點' ,'了' ,'麵' ,'薯條' ,'湯' ,'晚餐','晚飯' ,'先' ,'已經' ,'玉米' ,'再' ,'週末'], targetCount: 99, brainTip: 'Sophia Wong 修訂' },
                 L2_05: { id: 'L2_05', name: '第五課 秋天快到了', description: '找出本課的生詞 ', gridSize: 12, directions: [[0, 1], [1, 0], [1, 1]], words: ['變' ,'不錯' ,'白色' ,'春天' ,'草' ,'紅色' ,'黃' ,'還是' ,'花' ,'了' ,'綠色' ,'漂亮' ,'秋天' ,'時候' ,'樹葉' ,'天氣' ,'院子' ,'顏色' ,'舒服'], targetCount: 99, brainTip: 'Sophia Wong 修訂' },
-                L2_06: { id: 'L2_06', name: '第六課 農曆新年', description: '找出本課的生詞 ', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['拜年' ,'放鞭炮' ,'給' ,'紅包' ,'會' ,'每' ,'那天' ,'年糕' ,'如果' ,'說' ,'臺灣' ,'貼春聯' ,'新年' ,'放' ,'星期' ,'華人','農曆' ], targetCount: 99, brainTip: 'Sophia Wong 修訂' },
+                L2_06: { id: 'L2_06', name: '第六課 農曆新年', description: '找出本課的生詞 ', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['拜年' ,'放鞭炮' ,'給' ,'紅包' ,'會' ,'每次' ,'那天' ,'年糕' ,'如果' ,'說' ,'臺灣' ,'貼春聯' ,'新年' ,'放' ,'星期' ,'華人','農曆' ], targetCount: 99, brainTip: 'Sophia Wong 修訂' },
                 L2_07: { id: 'L2_07', name: '第七課 早一點睡覺', description: '找出本課的生詞', gridSize: 12, directions: [[0, 1], [1, 0], [1, 1]], words: ['別' ,'肥皂' ,'乾淨' ,'該' ,'過' ,'趕快' ,'來不及' ,'累' ,'起床' ,'刷牙' ,'睡覺' ,'晚上' ,'忘' ,'洗' ,'洗澡' ,'洗臉' ,'用' ,'知道' ,'昨天' ], targetCount: 99, brainTip: 'Sophia Wong 修訂' },
                 L2_08: { id: 'L2_08', name: '第八課 我的寵物', description: '找出本課的生詞', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['不見了' ,'寵物' ,'帶' ,'非常' ,'過','狗' ,'可愛' ,'貓' ,'去年' ,'送給' ,'上個月' ,'牠們' ,'兔子' ,'餵' ,'養' ,'隻' ,'散步'], targetCount: 99, brainTip: 'Sophia Wong 修訂' },
                 L2_09: { id: 'L2_09', name: '第九課 音樂教室在北方', description: '找出本課的生詞', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['北方' ,'還是','東方' ,'方向' ,'告訴' ,'教室' ,'南方' ,'所以' ,'它' ,'校門口' ,'西方' ,'因為' ,'足球場' ,'指北針' ,'指南針'], targetCount: 99, brainTip: 'Sophia Wong 修訂' },
@@ -330,7 +333,8 @@
                 plusSquare: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>',
                 rocket: '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:#10B981; margin-bottom:1rem;"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>',
                 edit: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
-                copy: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>'
+                copy: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>',
+                link: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>'
             };
 
             let state = {
@@ -363,6 +367,7 @@
                         </div>
                         <div class="header-actions">
                             <button class="icon-btn" id="btn-custom" title="自訂生詞">${svgs.edit}</button>
+                            <button class="icon-btn" id="btn-share" title="分享本課連結">${svgs.link}</button>
                             <button class="icon-btn" id="btn-print" title="列印">${svgs.print}</button>
                             <button class="icon-btn" id="btn-install" title="加入/書籤">${svgs.download}</button>
                             <button class="icon-btn" id="btn-fullscreen" title="全螢幕">${svgs.fullscreen}</button>
@@ -472,6 +477,20 @@
                         </div>
                     </div>
 
+                    <!-- 分享連結視窗 -->
+                    <div class="modal-overlay" id="share-modal" style="z-index: 95;">
+                        <div class="modal-content">
+                            <button class="modal-close-btn" id="btn-close-share">×</button>
+                            <h3 style="margin:0 0 1rem; color:#064E3B;">分享課程連結</h3>
+                            <p style="font-size:0.9rem; color:#666; margin-bottom:15px; text-align:left; line-height:1.5;">
+                                將此連結傳給學生，他們打開後會直接進入<br>
+                                「<strong id="share-stage-name" style="color:#059669;"></strong>」
+                            </p>
+                            <input type="text" id="share-link-input" readonly class="custom-input" style="font-size: 0.85rem; color:#555; background:#f9fafb;">
+                            <button class="modal-btn" id="btn-copy-link" style="width:100%;">複製連結</button>
+                        </div>
+                    </div>
+
                     <!-- 安裝/書籤教學 -->
                     <div class="modal-overlay" id="install-modal">
                         <div class="modal-content" style="text-align:left;">
@@ -532,7 +551,15 @@
                 btnNewCustom: shadow.querySelector('#btn-new-custom'),
                 customModalTitle: shadow.querySelector('#custom-modal-title'),
                 customErrorMsg: shadow.querySelector('#custom-error-msg'),
-                voiceSelect: shadow.querySelector('#voice-select')
+                voiceSelect: shadow.querySelector('#voice-select'),
+
+                // Share UI
+                btnShare: shadow.querySelector('#btn-share'),
+                shareModal: shadow.querySelector('#share-modal'),
+                btnCloseShare: shadow.querySelector('#btn-close-share'),
+                shareStageName: shadow.querySelector('#share-stage-name'),
+                shareLinkInput: shadow.querySelector('#share-link-input'),
+                btnCopyLink: shadow.querySelector('#btn-copy-link')
             };
 
             // --- Helper: Format Time ---
@@ -540,6 +567,15 @@
                 const m = Math.floor(seconds / 60);
                 const s = Math.floor(seconds % 60);
                 return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }
+
+            // --- Helper: Base64 ---
+            function toBase64(str) {
+                return window.btoa(unescape(encodeURIComponent(str)));
+            }
+            
+            function fromBase64(str) {
+                return decodeURIComponent(escape(window.atob(str)));
             }
 
             // --- Speech Synthesis ---
@@ -1042,7 +1078,6 @@
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(customs));
             }
 
-
             // --- Custom Modal Logic ---
             
             // Helper to show error
@@ -1216,6 +1251,43 @@
                 ui.customModal.classList.remove('show');
             });
 
+            // --- Share Logic ---
+            ui.btnShare.addEventListener('click', () => {
+                let shareUrl = window.location.origin + window.location.pathname;
+                
+                // If it's a custom stage, encode the data into URL
+                if (state.stage.isCustom) {
+                    const data = {
+                        n: state.stage.name,
+                        w: state.stage.words.join(','),
+                        s: state.stage.gridSize
+                    };
+                    const encoded = toBase64(JSON.stringify(data));
+                    shareUrl += `?custom=${encoded}`;
+                } else {
+                    // Standard stage
+                    shareUrl += `?stage=${state.stage.id}`;
+                }
+                
+                ui.shareStageName.textContent = state.stage.name;
+                ui.shareLinkInput.value = shareUrl;
+                ui.shareModal.classList.add('show');
+            });
+
+            ui.btnCloseShare.addEventListener('click', () => {
+                ui.shareModal.classList.remove('show');
+            });
+
+            ui.btnCopyLink.addEventListener('click', () => {
+                ui.shareLinkInput.select();
+                document.execCommand('copy');
+                const originalText = ui.btnCopyLink.textContent;
+                ui.btnCopyLink.textContent = "已複製！";
+                setTimeout(() => {
+                    ui.btnCopyLink.textContent = originalText;
+                }, 2000);
+            });
+
 
             // --- initPublicCounter: 零設定公共計數器 (Busuanzi) ---
             const initPublicCounter = () => {
@@ -1271,8 +1343,62 @@
                 document.head.appendChild(script);
             };
             
+            // --- URL Params Logic (Move here to be sure STAGES is loaded) ---
             loadCustomStages(); // Load saved custom stages
-            initGame();
+
+            // Check URL for direct stage or custom data
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryStage = urlParams.get('stage');
+            const customData = urlParams.get('custom');
+            
+            let startStageId = 'L2_01'; // Default
+
+            if (customData) {
+                try {
+                    const data = JSON.parse(fromBase64(customData));
+                    // Construct temp custom stage
+                    const tempId = 'shared_' + Date.now();
+                    
+                    // Calc size if not provided (backward compatibility)
+                    let size = data.s;
+                    if (!size) {
+                        const words = data.w.split(',');
+                         const totalChars = words.join('').length;
+                         const longestWord = Math.max(...words.map(w => w.length));
+                         size = Math.ceil(Math.sqrt(totalChars * 2.5));
+                         size = Math.max(11, longestWord + 2, size);
+                         size = Math.min(20, size);
+                    }
+
+                    STAGES[tempId] = {
+                        id: tempId,
+                        name: data.n,
+                        description: '分享的自訂課程',
+                        gridSize: parseInt(size),
+                        directions: [[0, 1], [1, 0], [1, 1]],
+                        words: data.w.split(','),
+                        targetCount: data.w.split(',').length,
+                        brainTip: '自訂挑戰',
+                        isCustom: true // Mark as custom but maybe not save to local?
+                    };
+                    
+                    // Add to dropdown
+                    const option = document.createElement('option');
+                    option.value = tempId;
+                    option.text = `★ ${data.n} (分享)`;
+                    ui.stageSelect.add(option);
+                    
+                    startStageId = tempId;
+
+                } catch (e) {
+                    console.error("Failed to parse custom data", e);
+                    alert("無效的分享連結");
+                }
+            } else if (queryStage && STAGES[queryStage]) {
+                startStageId = queryStage;
+            }
+
+            initGame(startStageId);
             initPublicCounter();
         }
         bootstrapGame();
