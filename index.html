@@ -1,18 +1,3 @@
-<!-- 
-  【學華語向前走 Book 2 - 全生詞挑戰版】
-  版本：2025-Book2-Final-Ultimate-ShareLink
-  
-  更新日誌：
-  1. [Feature] 新增「課程連結分享」功能：
-     - 支援 URL 參數啟動：網址帶入 ?stage=L2_XX 可直接進入該課。
-     - Header 新增分享按鈕 (Link Icon)。
-     - 點擊分享可生成當前課程的專屬連結 (QR Code 準備就緒)。
-  2. [Feature] 支援「自訂生詞」分享：
-     - 自訂的生詞表會被編碼 (Base64) 進網址中。
-     - 老師設定好後產生連結，學生點連結即可直接玩該自訂課程，無需手動輸入。
-  3. [System] 保持所有功能 (語音、防休眠、計數器、列印)。
--->
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -22,15 +7,12 @@
 </head>
 <body style="margin:0; padding:0;">
 
-<!-- 1. 設定掛載點 -->
 <div id="huayu-book2-root" style="width: 100%; min-height: 600px; margin: 0 auto; position: relative; z-index: 1;"></div>
 
-<!-- 2. 遊戲核心邏輯 -->
 <script type="module">
     (function() {
         'use strict';
 
-        // --- 啟動機制 ---
         function bootstrapGame() {
             const rootId = 'huayu-book2-root';
             let attempts = 0;
@@ -55,7 +37,6 @@
         }
 
         function initGameSystem(root) {
-            // --- 1. Shadow DOM 初始化 ---
             let shadow;
             try {
                 if (root.shadowRoot) {
@@ -69,7 +50,6 @@
                 return;
             }
 
-            // --- 2. PWA Meta Tags ---
             try {
                 if (!document.querySelector('meta[name="apple-mobile-web-app-capable"]')) {
                     const meta1 = document.createElement('meta'); meta1.name = "apple-mobile-web-app-capable"; meta1.content = "yes";
@@ -81,135 +61,67 @@
                 }
             } catch(e) {}
 
-            // --- 3. 樣式定義 (Green Theme) ---
             const styles = `
                 :host { all: initial; display: block; font-family: system-ui, -apple-system, sans-serif; }
                 * { box-sizing: border-box; }
                 
                 .game-container { background-color: #F0FDF4; color: #164E33; min-height: 100vh; padding: 1rem; display: flex; flex-direction: column; align-items: center; }
                 .inner-wrapper { width: 100%; max-width: 550px; margin: 0 auto; display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden; border-radius: 1rem; transition: max-width 0.3s ease; }
-                
-                /* 全螢幕時讓容器更寬 */
                 .game-container.fullscreen-mode .inner-wrapper { max-width: 100vh; } 
 
                 header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
                 .title-group { display: flex; align-items: center; gap: 0.75rem; }
                 h1 { font-size: 1.25rem; font-weight: 700; color: #064E3B; margin: 0; line-height: 1.2; }
                 .subtitle { font-size: 0.75rem; color: #059669; font-weight: 500; }
-                
                 .header-actions { display: flex; gap: 0.5rem; }
                 
                 button.icon-btn { padding: 0.5rem; border-radius: 9999px; border: none; background: transparent; color: #059669; cursor: pointer; transition: background-color 0.2s; display: flex; align-items: center; justify-content: center; }
                 button.icon-btn:hover { background-color: #D1FAE5; }
                 
-                /* Controls 區域優化：改用 flex-end 對齊底部 */
                 .controls { padding: 0.5rem 0.75rem; border-radius: 0.75rem; background-color: #ECFDF5; border: 1px solid #6EE7B7; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: flex-end; gap: 8px; }
-                
                 .select-wrapper { flex: 1; display: flex; flex-direction: column; }
                 .select-label { font-size: 0.75rem; font-weight: 500; margin-bottom: 0.25rem; opacity: 0.7; color: #064E3B; }
                 
-                /* Select 樣式優化 */
                 select { 
-                    width: 100%; 
-                    height: 38px; 
-                    padding: 0 2rem 0 0.75rem; 
-                    border-radius: 0.5rem; 
-                    border: 1px solid #6EE7B7; 
-                    background-color: white; 
-                    color: #064E3B; 
-                    font-size: 0.875rem; 
-                    outline: none; 
-                    appearance: none; 
-                    -webkit-appearance: none;
-                    -moz-appearance: none;
+                    width: 100%; height: 38px; padding: 0 2rem 0 0.75rem; border-radius: 0.5rem; border: 1px solid #6EE7B7; 
+                    background-color: white; color: #064E3B; font-size: 0.875rem; outline: none; appearance: none; 
+                    -webkit-appearance: none; -moz-appearance: none;
                     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23059669' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-                    background-repeat: no-repeat;
-                    background-position: right 0.5rem center;
-                    background-size: 1rem;
-                    cursor: pointer;
-                    line-height: 1.3;
+                    background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1rem; cursor: pointer; line-height: 1.3;
                 }
                 
                 .action-btn { 
-                    padding: 0; 
-                    border-radius: 0.5rem; 
-                    background-color: white; 
-                    color: #059669; 
-                    border: 1px solid #6EE7B7; 
-                    cursor: pointer; 
-                    display: flex; 
-                    align-items: center; 
-                    justify-content: center; 
-                    height: 38px; 
-                    width: 38px; 
-                    flex-shrink: 0; 
-                    transition: all 0.1s;
+                    padding: 0; border-radius: 0.5rem; background-color: white; color: #059669; border: 1px solid #6EE7B7; 
+                    cursor: pointer; display: flex; align-items: center; justify-content: center; height: 38px; width: 38px; flex-shrink: 0; transition: all 0.1s;
                 }
                 .action-btn:hover { background-color: #D1FAE5; }
                 .action-btn:active { transform: scale(0.95); }
                 .action-btn.active { background-color: #FEF3C7; color: #D97706; border-color: #FCD34D; }
                 
-                .timer-badge {
-                    background-color: white;
-                    color: #059669;
-                    border: 1px solid #6EE7B7;
-                    border-radius: 0.5rem;
-                    padding: 0 12px;
-                    height: 38px;
-                    display: flex;
-                    align-items: center;
-                    font-weight: 700;
-                    font-family: monospace;
-                    font-size: 1rem;
-                    white-space: nowrap;
-                }
-
+                .timer-badge { background-color: white; color: #059669; border: 1px solid #6EE7B7; border-radius: 0.5rem; padding: 0 12px; height: 38px; display: flex; align-items: center; font-weight: 700; font-family: monospace; font-size: 1rem; white-space: nowrap; }
                 .game-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; }
                 
-                /* [UI Fix] 網頁版格線還原 */
                 .grid-container { 
-                    background-color: white; /* 還原白色底 */
-                    padding: 0.5rem; 
-                    border-radius: 1.25rem; 
-                    border: 2px solid #6EE7B7; 
-                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); 
-                    user-select: none; 
-                    display: grid; 
-                    gap: 2px; 
-                    margin-bottom: 1rem; 
-                    width: 100%; 
-                    transition: filter 0.3s;
+                    background-color: white; padding: 0.5rem; border-radius: 1.25rem; border: 2px solid #6EE7B7; 
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); user-select: none; display: grid; gap: 2px; margin-bottom: 1rem; width: 100%; transition: filter 0.3s;
                 }
-
                 .grid-container.paused { filter: blur(8px); opacity: 0.6; pointer-events: none; }
                 
                 .cell { 
-                    width: 100%; 
-                    aspect-ratio: 1; 
-                    display: flex; align-items: center; justify-content: center; 
-                    /* [UI Fix] 還原字體大小設定 */
-                    font-size: clamp(0.8rem, 3.5vw, 1.25rem);
-                    font-weight: 500; 
-                    border-radius: 0.25rem; 
-                    cursor: pointer; 
-                    transition: all 0.2s ease; 
-                    background-color: white; color: #374151; 
-                    border: 2px solid transparent; 
+                    width: 100%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; 
+                    font-size: clamp(0.8rem, 3.5vw, 1.25rem); font-weight: 500; border-radius: 0.25rem; cursor: pointer; 
+                    transition: all 0.2s ease; background-color: white; color: #374151; border: 2px solid transparent; 
                 }
                 
                 .cell.active-start { background-color: #10B981 !important; color: white !important; transform: scale(0.95); box-shadow: inset 0 0 0 2px #6EE7B7; z-index: 5; }
                 .cell.found { background-color: #059669 !important; color: white !important; border-color: #D1FAE5; animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+                .cell.show-answer { background-color: #FEF08A !important; color: #92400E !important; outline: 2px dashed #F59E0B; z-index: 2; }
                 .cell:hover { background-color: #D1FAE5; }
                 
                 .modal-overlay { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background-color: rgba(240, 253, 244, 0.9); backdrop-filter: blur(4px); border-radius: 0.75rem; }
                 .modal-overlay.show { display: flex; }
                 
-                #start-modal { z-index: 10; }
-                #victory-modal { z-index: 20; }
-                #pause-modal { z-index: 30; }
-                #custom-modal { z-index: 90; }
-                #share-modal { z-index: 95; }
-                #install-modal { z-index: 100; }
+                #start-modal { z-index: 10; } #victory-modal { z-index: 20; } #pause-modal { z-index: 30; } #custom-modal { z-index: 90; } #share-modal { z-index: 95; } #install-modal { z-index: 100; }
 
                 .modal-content { background-color: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 2px solid #6EE7B7; text-align: center; width: 85%; max-width: 320px; position: relative;}
                 .modal-close-btn { position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 1.2rem; color: #999; cursor: pointer; }
@@ -237,37 +149,13 @@
                 .install-step { text-align: left; font-size: 0.9rem; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 8px; color: #374151; line-height: 1.4; }
                 .step-num { background: #10B981; color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.75rem; font-weight: bold; margin-top: 2px; }
 
-                /* 目標欄位樣式 */
-                .footer-panel { 
-                    margin-top: 1rem; 
-                    background-color: white; 
-                    padding: 1rem; 
-                    border-radius: 1.25rem; 
-                    border: 2px solid #6EE7B7; 
-                    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); 
-                    width: 100%; 
-                }
+                .footer-panel { margin-top: 1rem; background-color: white; padding: 1rem; border-radius: 1.25rem; border: 2px solid #6EE7B7; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); width: 100%; }
                 
                 .target-tags-wrapper { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
                 .target-tag { display: inline-flex; align-items: center; justify-content: center; padding: 0.375rem 0.75rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; transition: all 0.3s; border: 1px solid transparent; background-color: #ECFDF5; color: #064E3B; }
                 .target-tag.found { background-color: #6EE7B7; opacity: 0.6; position: relative; text-decoration: line-through; color: #064E3B; }
                 
-                .site-footer { 
-                    width: 100%; 
-                    text-align: center; 
-                    padding: 1.5rem 0 0.5rem; 
-                    font-size: 0.875rem; 
-                    color: #064E3B; 
-                    opacity: 0.8; 
-                    font-weight: 500; 
-                    display: flex; 
-                    justify-content: center; 
-                    align-items: center; 
-                    border-top: 2px dashed #6EE7B7; 
-                    margin-top: 1.5rem; 
-                    flex-direction: column; 
-                    gap: 4px; 
-                }
+                .site-footer { width: 100%; text-align: center; padding: 1.5rem 0 0.5rem; font-size: 0.875rem; color: #064E3B; opacity: 0.8; font-weight: 500; display: flex; justify-content: center; align-items: center; border-top: 2px dashed #6EE7B7; margin-top: 1.5rem; flex-direction: column; gap: 4px; }
                 .site-footer a { color: #059669; text-decoration: none; margin-left: 6px; font-weight: 700; }
                 .visitor-counter { font-size: 0.8rem; background-color: #ECFDF5; padding: 2px 8px; border-radius: 10px; color: #059669; display: inline-flex; align-items: center; gap: 4px; }
                 
@@ -280,25 +168,41 @@
             styleEl.textContent = styles;
             shadow.appendChild(styleEl);
 
-            // --- 4. 課程資料 (L1-L12) ---
             const STAGES = {
-                L2_01: { id: 'L2_01', name: '第一課 新同學', description: '找出本課的生詞 ', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['比較' ,'大家','方友朋','高興','跟','歡迎','今年','介紹','自己','看書','認識','現在','新','學','游泳','最','華語','張莉'], targetCount: 99, brainTip: 'Sophia Wong 修訂' },
-                L2_02: { id: 'L2_02', name: '第二課 我爸爸做生意', description: '找出本課的生詞 ', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['幫' ,'電腦公司' ,'工作' ,'上班' ,'外公' ,'外婆' ,'一樣' ,'以前','以後' ,'銀行' ,'醫生' ,'做生意'], targetCount: 99, brainTip: 'Sophia Wong 修訂' },
-                L2_03: { id: 'L2_03', name: '第三課 去超級市場', description: '找出本課的生詞', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['冰淇淋' ,'超級市場' ,'東西' ,'附近' ,'可以' ,'米' ,'買' ,'牛肉' ,'巧克力' ,'青菜' ,'糖果' ,'要' ,'魚'], targetCount: 99, brainTip: 'Sophia Wong 修訂' },
-                L2_04: { id: 'L2_04', name: '第四課 我想吃漢堡', description: '找出本課的生詞', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['出去' ,'蛋炒飯' ,'餓' ,'漢堡' ,'快點' ,'了' ,'麵' ,'薯條' ,'湯' ,'晚餐','晚飯' ,'先' ,'已經' ,'玉米' ,'再' ,'週末'], targetCount: 99, brainTip: 'Sophia Wong 修訂' },
-                L2_05: { id: 'L2_05', name: '第五課 秋天快到了', description: '找出本課的生詞 ', gridSize: 12, directions: [[0, 1], [1, 0], [1, 1]], words: ['變' ,'不錯' ,'白色' ,'春天' ,'草' ,'紅色' ,'黃' ,'還是' ,'花' ,'了' ,'綠色' ,'漂亮' ,'秋天' ,'時候' ,'樹葉' ,'天氣' ,'院子' ,'顏色' ,'舒服'], targetCount: 99, brainTip: 'Sophia Wong 修訂' },
-                L2_06: { id: 'L2_06', name: '第六課 農曆新年', description: '找出本課的生詞 ', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['拜年' ,'放鞭炮' ,'給' ,'紅包' ,'會' ,'每次' ,'那天' ,'年糕' ,'如果' ,'說' ,'臺灣' ,'貼春聯' ,'新年' ,'放' ,'星期' ,'華人','農曆' ], targetCount: 99, brainTip: 'Sophia Wong 修訂' },
-                L2_07: { id: 'L2_07', name: '第七課 早一點睡覺', description: '找出本課的生詞', gridSize: 12, directions: [[0, 1], [1, 0], [1, 1]], words: ['別' ,'肥皂' ,'乾淨' ,'該' ,'過' ,'趕快' ,'來不及' ,'累' ,'起床' ,'刷牙' ,'睡覺' ,'晚上' ,'忘' ,'洗' ,'洗澡' ,'洗臉' ,'用' ,'知道' ,'昨天' ], targetCount: 99, brainTip: 'Sophia Wong 修訂' },
-                L2_08: { id: 'L2_08', name: '第八課 我的寵物', description: '找出本課的生詞', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['不見了' ,'寵物' ,'帶' ,'非常' ,'過','狗' ,'可愛' ,'貓' ,'去年' ,'送給' ,'上個月' ,'牠們' ,'兔子' ,'餵' ,'養' ,'隻' ,'散步'], targetCount: 99, brainTip: 'Sophia Wong 修訂' },
-                L2_09: { id: 'L2_09', name: '第九課 音樂教室在北方', description: '找出本課的生詞', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['北方' ,'還是','東方' ,'方向' ,'告訴' ,'教室' ,'南方' ,'所以' ,'它' ,'校門口' ,'西方' ,'因為' ,'足球場' ,'指北針' ,'指南針'], targetCount: 99, brainTip: 'Sophia Wong 修訂' },
-                L2_10: { id: 'L2_10', name: '第十課 外公、外婆住在臺灣', description: '找出本課的生詞', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['本來' ,'法國' ,'舅舅' ,'看' ,'旅行' ,'紐約' ,'臺北' ,'臺南' ,'退休' ,'一次' ,'住在' ,'暑假'], targetCount: 99, brainTip: 'Sophia Wong 修訂' },
-                L2_11: { id: 'L2_11', name: '第十一課 去動物園', description: '找出本課的生詞', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['不但' ,'脖子' ,'長頸鹿' ,'大象' ,'動物園' ,'猴子' ,'看到' ,'老虎' ,'胖' ,'企鵝' ,'玩' ,'熊貓' ,'希望' ,'這一次' ,'長' ,'真'], targetCount: 99, brainTip: 'Sophia Wong 修訂' },
-                L2_12: { id: 'L2_12', name: '第十二課 打網路電話', description: '找出本課的生詞', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['啊' ,'過來' ,'很久' ,'好好' ,'看起來' ,'沒問題' ,'上課' ,'說話' ,'瘦' ,'網路' ,'寫' ,'信' ,'有意思' ,'一定','影像' ,'長高','電話' ], targetCount: 99, brainTip: 'Sophia Wong 修訂' }
+                L2_01: { id: 'L2_01', name: '第一課 新同學', description: '找出本課的生詞 ', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['比較' ,'大家','方友朋','高興','跟','歡迎','今年','介紹','自己','看書','認識','現在','新','學','游泳','最','華語','張莉'], targetCount: 99, brainTip: 'Powered by Gemini | Sophia老師的AI練習本' },
+                L2_02: { id: 'L2_02', name: '第二課 我爸爸做生意', description: '找出本課的生詞 ', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['幫' ,'電腦公司' ,'工作' ,'上班' ,'外公' ,'外婆' ,'一樣' ,'以前','以後' ,'銀行' ,'醫生' ,'做生意'], targetCount: 99, brainTip: 'Powered by Gemini | Sophia老師的AI練習本' },
+                L2_03: { id: 'L2_03', name: '第三課 去超級市場', description: '找出本課的生詞', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['冰淇淋' ,'超級市場' ,'東西' ,'附近' ,'可以' ,'米' ,'買' ,'牛肉' ,'巧克力' ,'青菜' ,'糖果' ,'要' ,'魚'], targetCount: 99, brainTip: 'Powered by Gemini | Sophia老師的AI練習本' },
+                L2_04: { id: 'L2_04', name: '第四課 我想吃漢堡', description: '找出本課的生詞', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['出去' ,'蛋炒飯' ,'餓' ,'漢堡' ,'快點' ,'了' ,'麵' ,'薯條' ,'湯' ,'晚餐','晚飯' ,'先' ,'已經' ,'玉米' ,'再' ,'週末'], targetCount: 99, brainTip: 'Powered by Gemini | Sophia老師的AI練習本' },
+                L2_05: { id: 'L2_05', name: '第五課 秋天快到了', description: '找出本課的生詞 ', gridSize: 12, directions: [[0, 1], [1, 0], [1, 1]], words: ['變' ,'不錯' ,'白色' ,'春天' ,'草' ,'紅色' ,'黃' ,'還是' ,'花' ,'了' ,'綠色' ,'漂亮' ,'秋天' ,'時候' ,'樹葉' ,'天氣' ,'院子' ,'顏色' ,'舒服'], targetCount: 99, brainTip: 'Powered by Gemini | Sophia老師的AI練習本' },
+                L2_06: { id: 'L2_06', name: '第六課 農曆新年', description: '找出本課的生詞 ', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['拜年' ,'放鞭炮' ,'給' ,'紅包' ,'會' ,'每次' ,'那天' ,'年糕' ,'如果' ,'說' ,'臺灣' ,'貼春聯' ,'新年' ,'放' ,'星期' ,'華人','農曆' ], targetCount: 99, brainTip: 'Powered by Gemini | Sophia老師的AI練習本' },
+                L2_07: { id: 'L2_07', name: '第七課 早一點睡覺', description: '找出本課的生詞', gridSize: 12, directions: [[0, 1], [1, 0], [1, 1]], words: ['別' ,'肥皂' ,'乾淨' ,'該' ,'過' ,'趕快' ,'來不及' ,'累' ,'起床' ,'刷牙' ,'睡覺' ,'晚上' ,'忘' ,'洗' ,'洗澡' ,'洗臉' ,'用' ,'知道' ,'昨天' ], targetCount: 99, brainTip: 'Powered by Gemini | Sophia老師的AI練習本' },
+                L2_08: { id: 'L2_08', name: '第八課 我的寵物', description: '找出本課的生詞', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['不見了' ,'寵物' ,'帶' ,'非常' ,'過','狗' ,'可愛' ,'貓' ,'去年' ,'送給' ,'上個月' ,'牠們' ,'兔子' ,'餵' ,'養' ,'隻' ,'散步'], targetCount: 99, brainTip: 'Powered by Gemini | Sophia老師的AI練習本' },
+                L2_09: { id: 'L2_09', name: '第九課 音樂教室在北方', description: '找出本課的生詞', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['北方' ,'還是','東方' ,'方向' ,'告訴' ,'教室' ,'南方' ,'所以' ,'它' ,'校門口' ,'西方' ,'因為' ,'足球場' ,'指北針' ,'指南針'], targetCount: 99, brainTip: 'Powered by Gemini | Sophia老師的AI練習本' },
+                L2_10: { id: 'L2_10', name: '第十課 外公、外婆住在臺灣', description: '找出本課的生詞', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['本來' ,'法國' ,'舅舅' ,'看' ,'旅行' ,'紐約' ,'臺北' ,'臺南' ,'退休' ,'一次' ,'住在' ,'暑假'], targetCount: 99, brainTip: 'Powered by Gemini | Sophia老師的AI練習本' },
+                L2_11: { id: 'L2_11', name: '第十一課 去動物園', description: '找出本課的生詞', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['不但' ,'脖子' ,'長頸鹿' ,'大象' ,'動物園' ,'猴子' ,'看到' ,'老虎' ,'胖' ,'企鵝' ,'玩' ,'熊貓' ,'希望' ,'這一次' ,'長' ,'真'], targetCount: 99, brainTip: 'Powered by Gemini | Sophia老師的AI練習本' },
+                L2_12: { id: 'L2_12', name: '第十二課 打網路電話', description: '找出本課的生詞', gridSize: 11, directions: [[0, 1], [1, 0], [1, 1]], words: ['啊' ,'過來' ,'很久' ,'好好' ,'看起來' ,'沒問題' ,'上課' ,'說話' ,'瘦' ,'網路' ,'寫' ,'信' ,'有意思' ,'一定','影像' ,'長高','電話' ], targetCount: 99, brainTip: 'Powered by Gemini | Sophia老師的AI練習本' }
+            };
+
+            // --- 新增全冊大挑戰 ---
+            let allL2Words = new Set();
+            Object.values(STAGES).forEach(s => {
+                if (s.words) s.words.forEach(w => allL2Words.add(w));
+            });
+            STAGES['L2_Review'] = {
+                id: 'L2_Review',
+                name: '🏆 全冊大挑戰 (每次隨機)',
+                description: '找出隱藏在其中的生詞！(提示已隱藏)',
+                gridSize: 14,
+                directions: [[0, 1], [1, 0], [1, 1], [1, -1]], // 加入右上斜向增加難度
+                words: Array.from(allL2Words),
+                randomPickCount: 30, // 每次隨機挑選 30 個生詞塞入
+                hideTargets: true,   // 隱藏目標提示
+                isBlankPrint: true,  // 列印時顯示為底線填空
+                brainTip: '全冊複習'
             };
 
             const EXTRA_FILLERS = '陳心美叫李大文林東明名字你好是什麼他我爸爸弟弟個哥哥和家幾老師媽媽呢人四三五王有八班九六兩男生女生你們七十同學我們也吃果汁喝還有還要今天來麵包牛奶水果早飯 冬天很覺得可是冷熱太了喜歡夏天有一點到的蛋糕二十八好快禮物漫畫生日十一書三十玩具月鼻子吧大畫圖會看嗎身體手頭雪人小一起眼睛唱歌常常打球好看電視跑步跳舞聽音樂下課以後做都房間後面裡面沒有哪裡去沙發上面下面一下在找桌子對不對姑姑那時候奶奶叔叔誰他們小孩爺爺右邊中間左邊照片張這歲'; 
             
-            // 鼓勵語錄
             const ENCOURAGEMENTS = [
                 "太棒了！", "真厲害！", "做得好！", "挑戰成功！", "眼力真好！", "反應超快！", "你是找字高手！", "完美過關！", "太神了！"
             ];
@@ -319,7 +223,7 @@
                 brain: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#10B981"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg>',
                 print: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>',
                 info: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>',
-                eye: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
+                eye: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
                 refresh: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>',
                 pause: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>',
                 play: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>',
@@ -341,18 +245,12 @@
                 stage: STAGES.L2_01,
                 board: [], targets: [], foundWords: [], firstSelection: null, selection: [], deferredPrompt: null,
                 startTime: 0, timerInterval: null, gameStarted: false, wakeLock: null, 
-                // Pause State
-                isPaused: false,
-                totalPausedTime: 0,
-                pauseStartTime: 0,
-                // Voice
-                voices: [],
-                selectedVoiceURI: localStorage.getItem('huayu_book2_voice_uri') || null
+                isPaused: false, totalPausedTime: 0, pauseStartTime: 0, showAnswerMode: false,
+                voices: [], selectedVoiceURI: localStorage.getItem('huayu_book2_voice_uri') || null
             };
 
             window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); state.deferredPrompt = e; });
 
-            // --- DOM ---
             const container = document.createElement('div');
             container.className = 'game-container';
             container.innerHTML = `
@@ -383,18 +281,18 @@
                         </div>
                         <div style="display:flex; gap:6px; align-items: flex-end;">
                             <div id="timer-display" class="timer-badge">00:00</div>
+                            <button class="action-btn" id="btn-show-answer" title="顯示/隱藏答案">${svgs.eye}</button>
                             <button class="action-btn" id="btn-pause" title="暫停/繼續">${svgs.pause}</button>
                             <button class="action-btn" id="btn-refresh" title="重新整理">${svgs.refresh}</button>
                         </div>
                     </div>
 
-                    <div class="desc-text" id="desc-text"></div>
+                    <div class="desc-text" id="desc-text" style="font-size:0.9rem; margin-bottom:8px; color:#064E3B; font-weight:500; text-align:center;"></div>
                     <div style="text-align:center; font-size:0.8rem; color:#10B981; margin-bottom: 0.5rem; width:100%;">💡 點擊「字首」與「字尾」即可連線</div>
 
                     <div class="game-area">
                         <div class="grid-container" id="grid-container"></div>
                         
-                        <!-- 準備開始畫面 -->
                         <div class="modal-overlay show" id="start-modal" style="background-color: rgba(240, 253, 244, 0.95);">
                             <div class="modal-content">
                                 ${svgs.rocket}
@@ -404,7 +302,6 @@
                             </div>
                         </div>
 
-                        <!-- 暫停畫面 -->
                         <div class="modal-overlay" id="pause-modal" style="background-color: rgba(255, 255, 255, 0.8); backdrop-filter: blur(5px);">
                             <div class="modal-content">
                                 <h2 style="font-size: 1.5rem; font-weight: 700; color: #059669; margin-bottom: 0.5rem;">遊戲暫停</h2>
@@ -413,7 +310,6 @@
                             </div>
                         </div>
 
-                        <!-- 勝利視窗 -->
                         <div class="modal-overlay" id="victory-modal">
                             <div class="modal-content">
                                 ${svgs.trophy}
@@ -437,39 +333,27 @@
                     </div>
 
                     <footer class="site-footer">
-                        <div>Sophia Wong 修訂</div>
+                        <div>Powered by Gemini | Sophia老師的AI練習本</div>
                         <div class="visitor-counter">
                             🔥 累積人次：<span id="visitor-count-display">...</span>
                         </div>
                     </footer>
 
-                    <!-- 自訂生詞視窗 -->
+                    <!-- Modals for Custom/Share/Install -->
                     <div class="modal-overlay" id="custom-modal">
                         <div class="modal-content" style="text-align: left; width: 90%; max-width: 400px;">
                             <button class="modal-close-btn" id="btn-close-custom">×</button>
                             <h3 id="custom-modal-title" style="margin:0 0 1rem; color:#064E3B; text-align:center;">自訂生詞</h3>
-                            
-                            <label class="custom-label">選擇聲音 (若裝置支援)</label>
+                            <label class="custom-label">選擇聲音</label>
                             <select id="voice-select" class="custom-input" style="background-image:none; padding-right: 0.75rem;"></select>
-
                             <label class="custom-label">標題</label>
                             <input type="text" id="custom-title" class="custom-input" value="我的生詞表" placeholder="輸入課程標題">
-                            
                             <label class="custom-label">生詞列表 (換行或逗號分隔)</label>
-                            <textarea id="custom-words" class="custom-input" rows="5" placeholder="例如：&#10;蘋果&#10;香蕉&#10;西瓜"></textarea>
-                            
-                            <label class="custom-label">
-                                格子大小 (選填)
-                                <span style="font-weight:normal; font-size:0.8rem; color:#666;">(留空則自動調整，最小10)</span>
-                            </label>
-                            <input type="number" id="custom-grid-size" class="custom-input" placeholder="自動計算 (建議留空)" min="10" max="25">
-
-                            <!-- 錯誤訊息顯示區 (取代 alert) -->
+                            <textarea id="custom-words" class="custom-input" rows="5" placeholder="蘋果, 香蕉..."></textarea>
+                            <label class="custom-label">格子大小 (自動建議留空)</label>
+                            <input type="number" id="custom-grid-size" class="custom-input" placeholder="自動計算" min="10" max="25">
                             <div id="custom-error-msg" style="color:#EF4444; font-size:0.9rem; margin-bottom:10px; text-align:center; display:none;"></div>
-
-                            <div class="custom-btn-group">
-                                <button class="modal-btn" id="btn-start-custom">建立並開始</button>
-                            </div>
+                            <div class="custom-btn-group"><button class="modal-btn" id="btn-start-custom">建立並開始</button></div>
                             <div class="custom-btn-group" id="edit-buttons-row" style="display:none; margin-top:10px;">
                                 <button class="modal-btn secondary" id="btn-new-custom">建立新的</button>
                                 <button class="modal-btn danger" id="btn-delete-custom">刪除此課程</button>
@@ -477,21 +361,16 @@
                         </div>
                     </div>
 
-                    <!-- 分享連結視窗 -->
                     <div class="modal-overlay" id="share-modal" style="z-index: 95;">
                         <div class="modal-content">
                             <button class="modal-close-btn" id="btn-close-share">×</button>
                             <h3 style="margin:0 0 1rem; color:#064E3B;">分享課程連結</h3>
-                            <p style="font-size:0.9rem; color:#666; margin-bottom:15px; text-align:left; line-height:1.5;">
-                                將此連結傳給學生，他們打開後會直接進入<br>
-                                「<strong id="share-stage-name" style="color:#059669;"></strong>」
-                            </p>
+                            <p style="font-size:0.9rem; color:#666; margin-bottom:15px; text-align:left; line-height:1.5;">將此連結傳給學生，直接進入<br>「<strong id="share-stage-name" style="color:#059669;"></strong>」</p>
                             <input type="text" id="share-link-input" readonly class="custom-input" style="font-size: 0.85rem; color:#555; background:#f9fafb;">
                             <button class="modal-btn" id="btn-copy-link" style="width:100%;">複製連結</button>
                         </div>
                     </div>
 
-                    <!-- 安裝/書籤教學 -->
                     <div class="modal-overlay" id="install-modal">
                         <div class="modal-content" style="text-align:left;">
                             <button class="modal-close-btn" id="btn-close-install">×</button>
@@ -508,211 +387,132 @@
             shadow.appendChild(container);
 
             const ui = {
-                grid: shadow.querySelector('#grid-container'),
-                stageSelect: shadow.querySelector('#stage-select'),
-                btnRefresh: shadow.querySelector('#btn-refresh'),
-                btnReplay: shadow.querySelector('#btn-replay'),
-                btnPrint: shadow.querySelector('#btn-print'),
-                btnFullscreen: shadow.querySelector('#btn-fullscreen'),
-                btnInstall: shadow.querySelector('#btn-install'),
-                btnCloseInstall: shadow.querySelector('#btn-close-install'),
-                installModal: shadow.querySelector('#install-modal'),
-                installInstructions: shadow.querySelector('#install-instructions'),
-                brainTip: shadow.querySelector('#brain-tip-text'),
-                descText: shadow.querySelector('#desc-text'),
-                dirHint: shadow.querySelector('#direction-hint'),
-                modal: shadow.querySelector('#victory-modal'),
-                startModal: shadow.querySelector('#start-modal'),
-                btnGameStart: shadow.querySelector('#btn-game-start'),
-                foundCount: shadow.querySelector('#found-count'),
-                totalCount: shadow.querySelector('#total-count'),
-                targetList: shadow.querySelector('#target-list'),
-                timerDisplay: shadow.querySelector('#timer-display'),
-                finalTime: shadow.querySelector('#final-time'),
-                victoryTitle: shadow.querySelector('#victory-title'),
-                visitorCountDisplay: shadow.querySelector('#visitor-count-display'),
-                btnCopyResult: shadow.querySelector('#btn-copy-result'),
-                
-                // Pause UI
-                btnPause: shadow.querySelector('#btn-pause'),
-                pauseModal: shadow.querySelector('#pause-modal'),
-                btnResume: shadow.querySelector('#btn-resume'),
-
-                // Custom UI
-                btnCustom: shadow.querySelector('#btn-custom'),
-                customModal: shadow.querySelector('#custom-modal'),
-                btnCloseCustom: shadow.querySelector('#btn-close-custom'),
-                btnStartCustom: shadow.querySelector('#btn-start-custom'),
-                customTitle: shadow.querySelector('#custom-title'),
-                customWords: shadow.querySelector('#custom-words'),
-                customGridSize: shadow.querySelector('#custom-grid-size'),
-                editButtonsRow: shadow.querySelector('#edit-buttons-row'),
-                btnDeleteCustom: shadow.querySelector('#btn-delete-custom'),
-                btnNewCustom: shadow.querySelector('#btn-new-custom'),
-                customModalTitle: shadow.querySelector('#custom-modal-title'),
-                customErrorMsg: shadow.querySelector('#custom-error-msg'),
-                voiceSelect: shadow.querySelector('#voice-select'),
-
-                // Share UI
-                btnShare: shadow.querySelector('#btn-share'),
-                shareModal: shadow.querySelector('#share-modal'),
-                btnCloseShare: shadow.querySelector('#btn-close-share'),
-                shareStageName: shadow.querySelector('#share-stage-name'),
-                shareLinkInput: shadow.querySelector('#share-link-input'),
+                grid: shadow.querySelector('#grid-container'), stageSelect: shadow.querySelector('#stage-select'),
+                btnRefresh: shadow.querySelector('#btn-refresh'), btnReplay: shadow.querySelector('#btn-replay'),
+                btnPrint: shadow.querySelector('#btn-print'), btnFullscreen: shadow.querySelector('#btn-fullscreen'),
+                btnInstall: shadow.querySelector('#btn-install'), btnCloseInstall: shadow.querySelector('#btn-close-install'),
+                installModal: shadow.querySelector('#install-modal'), installInstructions: shadow.querySelector('#install-instructions'),
+                descText: shadow.querySelector('#desc-text'), dirHint: shadow.querySelector('#direction-hint'),
+                modal: shadow.querySelector('#victory-modal'), startModal: shadow.querySelector('#start-modal'),
+                btnGameStart: shadow.querySelector('#btn-game-start'), foundCount: shadow.querySelector('#found-count'),
+                totalCount: shadow.querySelector('#total-count'), targetList: shadow.querySelector('#target-list'),
+                timerDisplay: shadow.querySelector('#timer-display'), finalTime: shadow.querySelector('#final-time'),
+                victoryTitle: shadow.querySelector('#victory-title'), visitorCountDisplay: shadow.querySelector('#visitor-count-display'),
+                btnCopyResult: shadow.querySelector('#btn-copy-result'), btnPause: shadow.querySelector('#btn-pause'),
+                btnShowAnswer: shadow.querySelector('#btn-show-answer'),
+                pauseModal: shadow.querySelector('#pause-modal'), btnResume: shadow.querySelector('#btn-resume'),
+                btnCustom: shadow.querySelector('#btn-custom'), customModal: shadow.querySelector('#custom-modal'),
+                btnCloseCustom: shadow.querySelector('#btn-close-custom'), btnStartCustom: shadow.querySelector('#btn-start-custom'),
+                customTitle: shadow.querySelector('#custom-title'), customWords: shadow.querySelector('#custom-words'),
+                customGridSize: shadow.querySelector('#custom-grid-size'), editButtonsRow: shadow.querySelector('#edit-buttons-row'),
+                btnDeleteCustom: shadow.querySelector('#btn-delete-custom'), btnNewCustom: shadow.querySelector('#btn-new-custom'),
+                customModalTitle: shadow.querySelector('#custom-modal-title'), customErrorMsg: shadow.querySelector('#custom-error-msg'),
+                voiceSelect: shadow.querySelector('#voice-select'), btnShare: shadow.querySelector('#btn-share'),
+                shareModal: shadow.querySelector('#share-modal'), btnCloseShare: shadow.querySelector('#btn-close-share'),
+                shareStageName: shadow.querySelector('#share-stage-name'), shareLinkInput: shadow.querySelector('#share-link-input'),
                 btnCopyLink: shadow.querySelector('#btn-copy-link')
             };
 
-            // --- Helper: Format Time ---
             function formatTime(seconds) {
-                const m = Math.floor(seconds / 60);
-                const s = Math.floor(seconds % 60);
+                const m = Math.floor(seconds / 60); const s = Math.floor(seconds % 60);
                 return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
             }
+            function toBase64(str) { return window.btoa(unescape(encodeURIComponent(str))); }
+            function fromBase64(str) { return decodeURIComponent(escape(window.atob(str))); }
 
-            // --- Helper: Base64 ---
-            function toBase64(str) {
-                return window.btoa(unescape(encodeURIComponent(str)));
-            }
-            
-            function fromBase64(str) {
-                return decodeURIComponent(escape(window.atob(str)));
-            }
-
-            // --- Speech Synthesis ---
             function loadVoices() {
                 const voices = window.speechSynthesis.getVoices();
                 state.voices = voices.filter(v => v.lang.includes('zh') || v.lang.includes('CN') || v.lang.includes('HK') || v.lang.includes('TW'));
-                
                 ui.voiceSelect.innerHTML = '';
                 if (state.voices.length === 0) {
-                    const option = document.createElement('option');
-                    option.text = "預設中文";
-                    ui.voiceSelect.add(option);
-                    return;
+                    const option = document.createElement('option'); option.text = "預設中文"; ui.voiceSelect.add(option); return;
                 }
-
                 state.voices.forEach(voice => {
                     const option = document.createElement('option');
-                    option.textContent = `${voice.name} (${voice.lang})`;
-                    option.value = voice.voiceURI;
-                    ui.voiceSelect.appendChild(option);
+                    option.textContent = `${voice.name} (${voice.lang})`; option.value = voice.voiceURI; ui.voiceSelect.appendChild(option);
                 });
-
-                // Restore selection
-                if (state.selectedVoiceURI) {
-                    ui.voiceSelect.value = state.selectedVoiceURI;
-                }
+                if (state.selectedVoiceURI) ui.voiceSelect.value = state.selectedVoiceURI;
             }
-
-            if (window.speechSynthesis) {
-                window.speechSynthesis.onvoiceschanged = loadVoices;
-                loadVoices();
-            }
-
+            if (window.speechSynthesis) { window.speechSynthesis.onvoiceschanged = loadVoices; loadVoices(); }
             ui.voiceSelect.addEventListener('change', () => {
                 state.selectedVoiceURI = ui.voiceSelect.value;
-                localStorage.setItem('huayu_book2_voice_uri', state.selectedVoiceURI);
-                speakWord('你好'); // Test sound
+                localStorage.setItem('huayu_book2_voice_uri', state.selectedVoiceURI); speakWord('你好');
             });
 
             function speakWord(text) {
                 if (!window.speechSynthesis) return;
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'zh-TW';
-                utterance.rate = 0.8; 
-                
+                utterance.lang = 'zh-TW'; utterance.rate = 0.8; 
                 if (state.selectedVoiceURI) {
                     const selectedVoice = state.voices.find(v => v.voiceURI === state.selectedVoiceURI);
                     if (selectedVoice) utterance.voice = selectedVoice;
                 }
-
                 window.speechSynthesis.speak(utterance);
             }
 
-            // --- Wake Lock Logic ---
             async function requestWakeLock() {
-                try {
-                    if ('wakeLock' in navigator) {
-                        state.wakeLock = await navigator.wakeLock.request('screen');
-                    }
-                } catch (err) {
-                    console.log(`${err.name}, ${err.message}`);
-                }
+                try { if ('wakeLock' in navigator) state.wakeLock = await navigator.wakeLock.request('screen'); } 
+                catch (err) { console.log(`${err.name}, ${err.message}`); }
             }
-
             function releaseWakeLock() {
-                if (state.wakeLock !== null) {
-                    state.wakeLock.release()
-                        .then(() => { state.wakeLock = null; });
-                }
+                if (state.wakeLock !== null) { state.wakeLock.release().then(() => { state.wakeLock = null; }); }
             }
 
-            // Game Logic
             function startTimer() {
                 if (state.timerInterval) clearInterval(state.timerInterval);
-                
-                // If resuming, don't reset startTime
-                if (!state.isPaused && state.startTime === 0) {
-                    state.startTime = Date.now();
-                    state.totalPausedTime = 0;
-                } else if (state.isPaused) {
-                    // Resume logic
-                    state.totalPausedTime += (Date.now() - state.pauseStartTime);
-                    state.isPaused = false;
-                    ui.btnPause.innerHTML = svgs.pause;
-                    ui.grid.classList.remove('paused');
-                    ui.pauseModal.classList.remove('show');
+                if (!state.isPaused && state.startTime === 0) { state.startTime = Date.now(); state.totalPausedTime = 0; } 
+                else if (state.isPaused) {
+                    state.totalPausedTime += (Date.now() - state.pauseStartTime); state.isPaused = false;
+                    ui.btnPause.innerHTML = svgs.pause; ui.grid.classList.remove('paused'); ui.pauseModal.classList.remove('show');
                 }
-
                 ui.timerDisplay.textContent = formatTime((Date.now() - state.startTime - state.totalPausedTime) / 1000);
-                
                 state.timerInterval = setInterval(() => {
-                    const elapsed = (Date.now() - state.startTime - state.totalPausedTime) / 1000;
-                    ui.timerDisplay.textContent = formatTime(elapsed);
+                    ui.timerDisplay.textContent = formatTime((Date.now() - state.startTime - state.totalPausedTime) / 1000);
                 }, 1000);
             }
-
             function stopTimer() {
-                if (state.timerInterval) {
-                    clearInterval(state.timerInterval);
-                    state.timerInterval = null;
-                }
+                if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
             }
-
-            // --- Pause Logic ---
             function togglePause() {
-                if (!state.gameStarted) return; // Can't pause before game starts
-
-                if (state.isPaused) {
-                    // Resume
-                    startTimer(); // This handles resume logic
-                } else {
-                    // Pause
-                    state.isPaused = true;
-                    state.pauseStartTime = Date.now();
-                    clearInterval(state.timerInterval);
-                    ui.btnPause.innerHTML = svgs.play;
-                    ui.grid.classList.add('paused');
-                    ui.pauseModal.classList.add('show');
+                if (!state.gameStarted) return;
+                if (state.isPaused) { startTimer(); } 
+                else {
+                    state.isPaused = true; state.pauseStartTime = Date.now(); clearInterval(state.timerInterval);
+                    ui.btnPause.innerHTML = svgs.play; ui.grid.classList.add('paused'); ui.pauseModal.classList.add('show');
                 }
             }
-
             ui.btnPause.addEventListener('click', togglePause);
             ui.btnResume.addEventListener('click', togglePause);
 
+            ui.btnShowAnswer.addEventListener('click', () => {
+                if (!state.gameStarted || state.isPaused) return;
+                state.showAnswerMode = !state.showAnswerMode;
+                if (state.showAnswerMode) {
+                    ui.btnShowAnswer.classList.add('active');
+                } else {
+                    ui.btnShowAnswer.classList.remove('active');
+                }
+                renderGrid();
+                renderTargets();
+            });
 
             function generateBoard(stageConfig) {
                 const size = stageConfig.gridSize;
                 const board = Array(size).fill(null).map(() => Array(size).fill(''));
                 const targets = [];
-                let itemsToPlace = [...stageConfig.words].sort(() => 0.5 - Math.random());
+                
+                // 處理隨機挑選邏輯 (給全冊大挑戰使用)
+                let sourceWords = [...stageConfig.words];
+                if (stageConfig.randomPickCount && sourceWords.length > stageConfig.randomPickCount) {
+                    sourceWords = sourceWords.sort(() => 0.5 - Math.random()).slice(0, stageConfig.randomPickCount);
+                }
+                
+                let itemsToPlace = sourceWords.sort(() => 0.5 - Math.random());
                 const itemsToPlaceSet = new Set(itemsToPlace);
 
                 for (const item of itemsToPlace) {
-                    let placed = false;
-                    let attempts = 0;
-                    const chars = [...item];
+                    let placed = false; let attempts = 0; const chars = [...item];
                     while (!placed && attempts < 200) { 
                         attempts++;
                         const direction = stageConfig.directions[Math.floor(Math.random() * stageConfig.directions.length)];
@@ -741,32 +541,20 @@
             function initGame(stageKey = 'L2_01') {
                 state.stage = STAGES[stageKey];
                 const data = generateBoard(state.stage);
-                state.board = data.board;
-                state.targets = data.targets;
-                state.foundWords = [];
-                state.firstSelection = null; 
-                state.gameStarted = false; 
-                
-                // Reset Timer & Pause State
-                state.startTime = 0;
-                state.isPaused = false;
-                state.totalPausedTime = 0;
-                stopTimer();
-                ui.timerDisplay.textContent = "00:00";
-                ui.btnPause.innerHTML = svgs.pause;
-                ui.grid.classList.remove('paused');
-                ui.pauseModal.classList.remove('show');
+                state.board = data.board; state.targets = data.targets;
+                state.foundWords = []; state.firstSelection = null; state.gameStarted = false; 
+                state.startTime = 0; state.isPaused = false; state.totalPausedTime = 0;
+                state.showAnswerMode = false; if(ui.btnShowAnswer) ui.btnShowAnswer.classList.remove('active');
+                stopTimer(); ui.timerDisplay.textContent = "00:00";
+                ui.btnPause.innerHTML = svgs.pause; ui.grid.classList.remove('paused'); ui.pauseModal.classList.remove('show');
                 
                 ui.stageSelect.value = stageKey;
                 ui.descText.textContent = state.stage.description;
                 ui.dirHint.textContent = '可直、橫、斜向尋找';
                 ui.modal.classList.remove('show');
-                
-                // Show start modal
                 ui.startModal.classList.add('show');
                 
-                renderGrid();
-                renderTargets();
+                renderGrid(); renderTargets();
             }
 
             function renderGrid() {
@@ -776,23 +564,23 @@
                     for (let c = 0; c < state.stage.gridSize; c++) {
                         const isStart = state.firstSelection && state.firstSelection.r === r && state.firstSelection.c === c;
                         let isFound = false;
+                        let isShowAnswer = false;
                         for (const t of state.targets) {
                             if (state.foundWords.includes(t.word)) {
-                                const [sr, sc] = t.start;
-                                const [er, ec] = t.end;
-                                const dr = Math.sign(er - sr);
-                                const dc = Math.sign(ec - sc);
+                                const [sr, sc] = t.start; const [er, ec] = t.end;
+                                const dr = Math.sign(er - sr); const dc = Math.sign(ec - sc);
                                 const len = Math.max(Math.abs(er - sr), Math.abs(ec - sc)) + 1;
-                                for(let i=0; i<len; i++) {
-                                    if (sr + i*dr === r && sc + i*dc === c) { isFound = true; break; }
-                                }
+                                for(let i=0; i<len; i++) { if (sr + i*dr === r && sc + i*dc === c) { isFound = true; break; } }
+                            } else if (state.showAnswerMode && !isFound) {
+                                const [sr, sc] = t.start; const [er, ec] = t.end;
+                                const dr = Math.sign(er - sr); const dc = Math.sign(ec - sc);
+                                const len = Math.max(Math.abs(er - sr), Math.abs(ec - sc)) + 1;
+                                for(let i=0; i<len; i++) { if (sr + i*dr === r && sc + i*dc === c) { isShowAnswer = true; break; } }
                             }
                             if (isFound) break;
                         }
                         let className = 'cell';
-                        if (state.stage.isIconMode) className += ' icon-mode';
-                        if (isStart) className += ' active-start';
-                        else if (isFound) className += ' found';
+                        if (isStart) className += ' active-start'; else if (isFound) className += ' found'; else if (isShowAnswer) className += ' show-answer';
                         html += `<div class="${className}" data-r="${r}" data-c="${c}">${state.board[r][c]}</div>`;
                     }
                 }
@@ -802,79 +590,56 @@
             function renderTargets() {
                 ui.foundCount.textContent = state.foundWords.length;
                 ui.totalCount.textContent = state.targets.length;
-                const list = ui.targetList;
-                list.innerHTML = state.targets.map(t => {
+                ui.targetList.innerHTML = state.targets.map(t => {
                     const isFound = state.foundWords.includes(t.word);
                     let cls = 'target-tag';
                     if (isFound) cls += ' found';
-                    return `<span class="${cls}">${t.word}</span>`;
+                    
+                    // 隱藏提示邏輯 (給全冊大挑戰使用)
+                    let displayText = t.word;
+                    if (state.stage.hideTargets && !isFound && !state.showAnswerMode) displayText = '？'.repeat(t.word.length);
+                    
+                    return `<span class="${cls}">${displayText}</span>`;
                 }).join('');
             }
 
             function handleCellClick(r, c) {
-                // Prevent interaction if game hasn't started OR paused
                 if (!state.gameStarted || state.isPaused) return; 
-
-                if (!state.firstSelection) {
-                    state.firstSelection = { r, c };
-                    renderGrid();
-                    return;
-                }
+                if (!state.firstSelection) { state.firstSelection = { r, c }; renderGrid(); return; }
                 const start = state.firstSelection;
                 if (start.r === r && start.c === c) {
                     const char = state.board[r][c];
                     const matchedTarget = state.targets.find(t => !state.foundWords.includes(t.word) && t.word === char);
                     if (matchedTarget) {
-                        state.foundWords.push(matchedTarget.word);
-                        speakWord(matchedTarget.word);
-                        checkVictory();
-                        state.firstSelection = null;
-                    } else {
-                        state.firstSelection = null;
+                        state.foundWords.push(matchedTarget.word); speakWord(matchedTarget.word); checkVictory();
                     }
-                    renderGrid(); renderTargets(); return;
+                    state.firstSelection = null; renderGrid(); renderTargets(); return;
                 }
                 
-                // Logic for multi-character selection
-                const dr = r - start.r;
-                const dc = c - start.c;
+                const dr = r - start.r; const dc = c - start.c;
                 const isDiagonal = Math.abs(dr) === Math.abs(dc);
-                const isHorizontal = dr === 0;
-                const isVertical = dc === 0;
+                const isHorizontal = dr === 0; const isVertical = dc === 0;
 
                 if (isHorizontal || isVertical || isDiagonal) {
                     const steps = Math.max(Math.abs(dr), Math.abs(dc));
-                    const rStep = dr === 0 ? 0 : dr / steps;
-                    const cStep = dc === 0 ? 0 : dc / steps;
+                    const rStep = dr === 0 ? 0 : dr / steps; const cStep = dc === 0 ? 0 : dc / steps;
                     let selectedWord = '';
                     for (let i = 0; i <= steps; i++) {
-                        const currR = start.r + i * rStep;
-                        const currC = start.c + i * cStep;
-                        selectedWord += state.board[currR][currC];
+                        selectedWord += state.board[start.r + i * rStep][start.c + i * cStep];
                     }
                     const matchedTarget = state.targets.find(t => 
-                        !state.foundWords.includes(t.word) && 
-                        (t.word === selectedWord || t.word === [...selectedWord].reverse().join(''))
+                        !state.foundWords.includes(t.word) && (t.word === selectedWord || t.word === [...selectedWord].reverse().join(''))
                     );
-                    if (matchedTarget) {
-                        state.foundWords.push(matchedTarget.word);
-                        speakWord(matchedTarget.word);
-                        checkVictory();
-                    }
+                    if (matchedTarget) { state.foundWords.push(matchedTarget.word); speakWord(matchedTarget.word); checkVictory(); }
                 }
-                state.firstSelection = null;
-                renderGrid();
-                renderTargets();
+                state.firstSelection = null; renderGrid(); renderTargets();
             }
 
             function checkVictory() {
                 if (state.foundWords.length === state.targets.length) {
-                    stopTimer(); 
-                    releaseWakeLock(); // Release lock
+                    stopTimer(); releaseWakeLock();
                     ui.finalTime.textContent = ui.timerDisplay.textContent;
-                    // Random encouragement
-                    const randomMsg = ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)];
-                    ui.victoryTitle.textContent = randomMsg;
+                    ui.victoryTitle.textContent = ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)];
                     setTimeout(() => ui.modal.classList.add('show'), 300);
                 }
             }
@@ -884,19 +649,14 @@
                 if (el) handleCellClick(parseInt(el.dataset.r), parseInt(el.dataset.c));
             });
 
-            // Start Game Button Logic
             ui.btnGameStart.addEventListener('click', () => {
-                state.gameStarted = true;
-                ui.startModal.classList.remove('show');
-                requestWakeLock(); // Request screen keep awake
-                startTimer();
+                state.gameStarted = true; ui.startModal.classList.remove('show'); requestWakeLock(); startTimer();
             });
 
             ui.btnCopyResult.addEventListener('click', () => {
                 const text = `生詞大挑戰 - ${state.stage.name}\n${ui.victoryTitle.textContent} 耗時：${ui.finalTime.textContent}`;
                 navigator.clipboard.writeText(text).then(() => {
-                    const originalText = ui.btnCopyResult.innerHTML;
-                    ui.btnCopyResult.innerHTML = "已複製！";
+                    const originalText = ui.btnCopyResult.innerHTML; ui.btnCopyResult.innerHTML = "已複製！";
                     setTimeout(() => ui.btnCopyResult.innerHTML = originalText, 2000);
                 });
             });
@@ -904,28 +664,24 @@
             ui.stageSelect.addEventListener('change', (e) => initGame(e.target.value));
             ui.btnRefresh.addEventListener('click', () => initGame(state.stage.id));
             ui.btnReplay.addEventListener('click', () => initGame(state.stage.id));
+            
             ui.btnFullscreen.addEventListener('click', () => {
                 const container = shadow.querySelector('.game-container');
                 if (!document.fullscreenElement) {
                     document.getElementById('huayu-book2-root').requestFullscreen().catch(err => alert(`Error: ${err.message}`));
-                    ui.btnFullscreen.innerHTML = svgs.exitFullscreen;
-                    container.classList.add('fullscreen-mode');
+                    ui.btnFullscreen.innerHTML = svgs.exitFullscreen; container.classList.add('fullscreen-mode');
                 } else {
-                    document.exitFullscreen();
-                    ui.btnFullscreen.innerHTML = svgs.fullscreen;
-                    container.classList.remove('fullscreen-mode');
+                    document.exitFullscreen(); ui.btnFullscreen.innerHTML = svgs.fullscreen; container.classList.remove('fullscreen-mode');
                 }
             });
+            
             document.addEventListener('fullscreenchange', () => {
                  const container = shadow.querySelector('.game-container');
-                 if (!document.fullscreenElement) {
-                     ui.btnFullscreen.innerHTML = svgs.fullscreen;
-                     container.classList.remove('fullscreen-mode');
-                 } else {
-                     ui.btnFullscreen.innerHTML = svgs.exitFullscreen;
-                     container.classList.add('fullscreen-mode');
-                 }
+                 if (!document.fullscreenElement) { ui.btnFullscreen.innerHTML = svgs.fullscreen; container.classList.remove('fullscreen-mode'); } 
+                 else { ui.btnFullscreen.innerHTML = svgs.exitFullscreen; container.classList.add('fullscreen-mode'); }
             });
+
+            // 列印功能：包含底線填空判斷
             ui.btnPrint.addEventListener('click', () => {
                 const printWindow = window.open('', '_blank');
                 if (!printWindow) { alert("請允許彈跳視窗"); return; }
@@ -938,39 +694,19 @@
                             @page { size: A4 portrait; margin: 1.5cm; }
                             body { font-family: "Microsoft JhengHei", sans-serif; text-align: center; color: #000; background: #fff; -webkit-print-color-adjust: exact; }
                             h1 { margin: 0 0 15px 0; font-size: 24px; color: #000; }
-                            .grid { 
-                                display: grid; 
-                                grid-template-columns: repeat(${state.stage.gridSize}, 1fr); 
-                                border: 2px solid #000; 
-                                width: 100%; 
-                                max-width: 18cm; 
-                                margin: 0 auto; 
-                            }
-                            .cell { 
-                                border: 1px solid #000; 
-                                aspect-ratio: 1; 
-                                display: flex; 
-                                justify-content: center; 
-                                align-items: center; 
-                                font-size: 24px; 
-                                font-weight: bold; 
-                                color: #000;
-                            }
-                            .words { 
-                                display: flex; 
-                                flex-wrap: wrap; 
-                                gap: 8px; 
-                                justify-content: center; 
-                                margin-top: 20px; 
-                                page-break-inside: avoid; 
-                            }
-                            .word { 
-                                border: 1px solid #000; 
-                                padding: 4px 10px; 
-                                border-radius: 4px; 
-                                font-size: 14px; 
-                                color: #000; 
-                                text-decoration: none; 
+                            .grid { display: grid; grid-template-columns: repeat(${state.stage.gridSize}, 1fr); border: 2px solid #000; width: 100%; max-width: 18cm; margin: 0 auto; }
+                            .cell { border: 1px solid #000; aspect-ratio: 1; display: flex; justify-content: center; align-items: center; font-size: 24px; font-weight: bold; color: #000; }
+                            .words { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 20px; page-break-inside: avoid; }
+                            .word { border: 1px solid #000; padding: 4px 10px; border-radius: 4px; font-size: 14px; color: #000; text-decoration: none; }
+                            .blank-line {
+                                border: none !important;
+                                border-bottom: 1px solid #000 !important;
+                                border-radius: 0 !important;
+                                width: 100px;
+                                height: 24px;
+                                margin: 5px 10px;
+                                display: flex;
+                                align-items: flex-end;
                             }
                             .footer { margin-top: 30px; font-size: 12px; color: #000; }
                         </style>
@@ -981,72 +717,41 @@
                             ${state.board.flat().map(c => `<div class="cell">${c}</div>`).join('')}
                         </div>
                         <div class="words">
-                            ${state.targets.map(t => `<div class="word">${t.word}</div>`).join('')}
+                            ${state.stage.isBlankPrint 
+                                ? state.targets.map((t, i) => `<div class="blank-line"><span style="font-size:12px; margin-right:4px;">${i+1}.</span></div>`).join('')
+                                : state.targets.map(t => `<div class="word">${t.word}</div>`).join('')}
                         </div>
-                        <div class="footer">Sophia Wong 修訂 | 生詞大挑戰</div>
-                        <script>
-                            window.onload = function() { setTimeout(function(){ window.print(); }, 500); };
-                        <\/script>
+                        <div class="footer">Powered by Gemini | Sophia老師的AI練習本 | 生詞大挑戰</div>
+                        <script>window.onload = function() { setTimeout(function(){ window.print(); }, 500); };<\/script>
                     </body>
                     </html>
                 `;
-                printWindow.document.write(html);
-                printWindow.document.close();
+                printWindow.document.write(html); printWindow.document.close();
             });
-            
+
             ui.btnInstall.addEventListener('click', () => {
-                if (state.deferredPrompt) { 
-                    state.deferredPrompt.prompt(); 
-                    state.deferredPrompt = null; 
-                    return; 
-                }
-
-                const ua = navigator.userAgent;
-                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
-                const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
-                const isMac = /Macintosh|Mac OS X/.test(ua);
-
-                let title = "加入主畫面";
-                let sub = "將遊戲變成 App，全螢幕體驗更好！";
-                let html = "";
+                if (state.deferredPrompt) { state.deferredPrompt.prompt(); state.deferredPrompt = null; return; }
+                const ua = navigator.userAgent; const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+                const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream; const isMac = /Macintosh|Mac OS X/.test(ua);
+                let title = "加入主畫面"; let sub = "將遊戲變成 App，全螢幕體驗更好！"; let html = "";
 
                 if (isMobile) {
-                    if (isIOS) {
-                        html = `<div class="install-step"><div class="step-num">1</div> 點擊分享 ${svgs.iosShare}</div><div class="install-step"><div class="step-num">2</div> 選「加入主畫面」 ${svgs.plusSquare}</div>`;
-                    } else {
-                        html = `<div class="install-step"><div class="step-num">1</div> 點擊瀏覽器選單 ${svgs.menuDots}</div><div class="install-step"><div class="step-num">2</div> 選擇「安裝」或「加入主畫面」</div>`;
-                    }
+                    if (isIOS) html = `<div class="install-step"><div class="step-num">1</div> 點擊分享 ${svgs.iosShare}</div><div class="install-step"><div class="step-num">2</div> 選「加入主畫面」 ${svgs.plusSquare}</div>`;
+                    else html = `<div class="install-step"><div class="step-num">1</div> 點擊瀏覽器選單 ${svgs.menuDots}</div><div class="install-step"><div class="step-num">2</div> 選擇「安裝」或「加入主畫面」</div>`;
                 } else {
-                    title = "加入書籤";
-                    sub = "把這個遊戲存下來，下次方便複習！";
-                    const key = isMac ? "Cmd + D" : "Ctrl + D";
-                    html = `
-                        <div style="text-align:center; padding: 15px 0;">
-                            <div style="color:#059669; margin-bottom:10px;">${svgs.bookmark}</div>
-                            <p style="margin-bottom:10px; color:#374151;">請按下鍵盤快速鍵：</p>
-                            <div style="display:inline-block; background:#ECFDF5; padding:8px 16px; border-radius:8px; font-weight:bold; font-size:1.2rem; color:#059669; border:1px solid #6EE7B7;">${key}</div>
-                        </div>
-                    `;
+                    title = "加入書籤"; sub = "把這個遊戲存下來，下次方便複習！"; const key = isMac ? "Cmd + D" : "Ctrl + D";
+                    html = `<div style="text-align:center; padding: 15px 0;"><div style="color:#059669; margin-bottom:10px;">${svgs.bookmark}</div><p style="margin-bottom:10px; color:#374151;">請按下鍵盤快速鍵：</p><div style="display:inline-block; background:#ECFDF5; padding:8px 16px; border-radius:8px; font-weight:bold; font-size:1.2rem; color:#059669; border:1px solid #6EE7B7;">${key}</div></div>`;
                 }
 
                 const modalContent = ui.installModal.querySelector('.modal-content');
-                const titleEl = modalContent.querySelector('h3');
-                const descEl = modalContent.querySelector('p');
-                const iconEl = modalContent.querySelector('.install-guide-icon');
-                
-                if(titleEl) titleEl.textContent = title;
-                if(descEl) descEl.textContent = sub;
-                if(iconEl) iconEl.innerHTML = isMobile ? svgs.download : svgs.bookmark;
-                
-                ui.installInstructions.innerHTML = html;
-                ui.installModal.classList.add('show');
+                if(modalContent.querySelector('h3')) modalContent.querySelector('h3').textContent = title;
+                if(modalContent.querySelector('p')) modalContent.querySelector('p').textContent = sub;
+                if(modalContent.querySelector('.install-guide-icon')) modalContent.querySelector('.install-guide-icon').innerHTML = isMobile ? svgs.download : svgs.bookmark;
+                ui.installInstructions.innerHTML = html; ui.installModal.classList.add('show');
             });
             ui.btnCloseInstall.addEventListener('click', () => ui.installModal.classList.remove('show'));
 
-
-            // --- LocalStorage Logic ---
             const STORAGE_KEY = 'huayu_book2_custom_stages_v2';
-
             function loadCustomStages() {
                 try {
                     const stored = localStorage.getItem(STORAGE_KEY);
@@ -1054,117 +759,56 @@
                         const customs = JSON.parse(stored);
                         Object.keys(customs).forEach(key => {
                             STAGES[key] = customs[key];
-                            // Add to select if not exists
                             if (!ui.stageSelect.querySelector(`option[value="${key}"]`)) {
-                                const option = document.createElement('option');
-                                option.value = key;
-                                option.text = `★ ${customs[key].name}`;
-                                ui.stageSelect.add(option);
+                                const option = document.createElement('option'); option.value = key; option.text = `★ ${customs[key].name}`; ui.stageSelect.add(option);
                             }
                         });
                     }
-                } catch (e) {
-                    console.error("Failed to load custom stages", e);
-                }
+                } catch (e) { console.error("Failed to load custom stages", e); }
             }
-
             function saveCustomStages() {
                 const customs = {};
-                Object.keys(STAGES).forEach(key => {
-                    if (STAGES[key].isCustom) {
-                        customs[key] = STAGES[key];
-                    }
-                });
+                Object.keys(STAGES).forEach(key => { if (STAGES[key].isCustom) customs[key] = STAGES[key]; });
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(customs));
             }
 
-            // --- Custom Modal Logic ---
-            
-            // Helper to show error
             function showCustomError(msg) {
-                ui.customErrorMsg.textContent = msg;
-                ui.customErrorMsg.style.display = 'block';
-                setTimeout(() => {
-                    ui.customErrorMsg.style.display = 'none';
-                }, 3000);
+                ui.customErrorMsg.textContent = msg; ui.customErrorMsg.style.display = 'block';
+                setTimeout(() => { ui.customErrorMsg.style.display = 'none'; }, 3000);
             }
 
             ui.btnCustom.addEventListener('click', () => {
                 const currentId = state.stage.id;
-                // Check if current is custom
                 if (STAGES[currentId] && STAGES[currentId].isCustom) {
-                    // Edit Mode
-                    ui.customModalTitle.textContent = "修改自訂生詞";
-                    ui.customTitle.value = STAGES[currentId].name;
-                    ui.customWords.value = STAGES[currentId].words.join('\n');
-                    ui.customGridSize.value = STAGES[currentId].gridSize || '';
-                    ui.btnStartCustom.textContent = "更新並開始";
-                    ui.editButtonsRow.style.display = 'flex';
+                    ui.customModalTitle.textContent = "修改自訂生詞"; ui.customTitle.value = STAGES[currentId].name;
+                    ui.customWords.value = STAGES[currentId].words.join('\n'); ui.customGridSize.value = STAGES[currentId].gridSize || '';
+                    ui.btnStartCustom.textContent = "更新並開始"; ui.editButtonsRow.style.display = 'flex';
                 } else {
-                    // Create Mode
-                    ui.customModalTitle.textContent = "自訂生詞";
-                    ui.customTitle.value = "我的生詞表";
-                    ui.customWords.value = "";
-                    ui.customGridSize.value = "";
-                    ui.btnStartCustom.textContent = "建立並開始";
-                    ui.editButtonsRow.style.display = 'none';
+                    ui.customModalTitle.textContent = "自訂生詞"; ui.customTitle.value = "我的生詞表";
+                    ui.customWords.value = ""; ui.customGridSize.value = "";
+                    ui.btnStartCustom.textContent = "建立並開始"; ui.editButtonsRow.style.display = 'none';
                 }
                 ui.customModal.classList.add('show');
             });
-
             ui.btnCloseCustom.addEventListener('click', () => {
-                // Reset delete state when closing
-                deleteConfirmation = false;
-                ui.btnDeleteCustom.classList.remove('confirming');
-                ui.btnDeleteCustom.textContent = "刪除此課程";
-                ui.customModal.classList.remove('show');
+                deleteConfirmation = false; ui.btnDeleteCustom.classList.remove('confirming'); ui.btnDeleteCustom.textContent = "刪除此課程"; ui.customModal.classList.remove('show');
             });
-
-            // Create New from Edit Mode
             ui.btnNewCustom.addEventListener('click', () => {
-                ui.customModalTitle.textContent = "自訂生詞";
-                ui.customTitle.value = "我的生詞表";
-                ui.customWords.value = "";
-                ui.customGridSize.value = "";
-                ui.btnStartCustom.textContent = "建立並開始";
-                ui.editButtonsRow.style.display = 'none';
+                ui.customModalTitle.textContent = "自訂生詞"; ui.customTitle.value = "我的生詞表"; ui.customWords.value = ""; ui.customGridSize.value = "";
+                ui.btnStartCustom.textContent = "建立並開始"; ui.editButtonsRow.style.display = 'none';
             });
 
-            // Delete Custom (No confirm() alert used)
             let deleteConfirmation = false;
-            
             ui.btnDeleteCustom.addEventListener('click', () => {
                 if (!deleteConfirmation) {
-                    // First click: Request confirmation
-                    deleteConfirmation = true;
-                    ui.btnDeleteCustom.textContent = "確定要刪除嗎？(點擊)";
-                    ui.btnDeleteCustom.classList.add('confirming');
-                    
-                    // Reset after 3 seconds if not clicked
-                    setTimeout(() => {
-                        deleteConfirmation = false;
-                        if(ui.btnDeleteCustom) {
-                            ui.btnDeleteCustom.textContent = "刪除此課程";
-                            ui.btnDeleteCustom.classList.remove('confirming');
-                        }
-                    }, 3000);
+                    deleteConfirmation = true; ui.btnDeleteCustom.textContent = "確定要刪除嗎？(點擊)"; ui.btnDeleteCustom.classList.add('confirming');
+                    setTimeout(() => { deleteConfirmation = false; if(ui.btnDeleteCustom) { ui.btnDeleteCustom.textContent = "刪除此課程"; ui.btnDeleteCustom.classList.remove('confirming'); } }, 3000);
                     return;
                 }
-
-                // Second click: Perform Delete
-                const currentId = state.stage.id;
-                delete STAGES[currentId];
-                const option = ui.stageSelect.querySelector(`option[value="${currentId}"]`);
-                if (option) option.remove();
-                
-                saveCustomStages();
-                initGame('L2_01'); // Back to default
-                
-                // Reset UI state
-                deleteConfirmation = false;
-                ui.btnDeleteCustom.textContent = "刪除此課程";
-                ui.btnDeleteCustom.classList.remove('confirming');
-                ui.customModal.classList.remove('show');
+                const currentId = state.stage.id; delete STAGES[currentId];
+                const option = ui.stageSelect.querySelector(`option[value="${currentId}"]`); if (option) option.remove();
+                saveCustomStages(); initGame('L2_01'); 
+                deleteConfirmation = false; ui.btnDeleteCustom.textContent = "刪除此課程"; ui.btnDeleteCustom.classList.remove('confirming'); ui.customModal.classList.remove('show');
             });
 
             ui.btnStartCustom.addEventListener('click', () => {
@@ -1172,231 +816,84 @@
                 const text = ui.customWords.value.trim();
                 let manualSize = parseInt(ui.customGridSize.value);
                 
-                if (!text) {
-                    showCustomError('請輸入生詞！');
-                    return;
-                }
-
-                // Split by newline, comma, and Chinese comma
+                if (!text) { showCustomError('請輸入生詞！'); return; }
                 const words = text.split(/[\n,、]/).map(w => w.trim()).filter(w => w.length > 0);
-                
-                if (words.length === 0) {
-                    showCustomError('請輸入有效的生詞！');
-                    return;
-                }
+                if (words.length === 0) { showCustomError('請輸入有效的生詞！'); return; }
 
-                // Calculate Grid Size dynamicall based on word content
-                const totalChars = words.join('').length;
-                const longestWord = Math.max(...words.map(w => w.length));
-                
-                // Base calculation: sqrt(totalChars * 2.5) for enough space
+                const totalChars = words.join('').length; const longestWord = Math.max(...words.map(w => w.length));
                 let calcSize = Math.ceil(Math.sqrt(totalChars * 2.5));
-                
-                // Determine final size logic
                 if (manualSize) {
-                    // Manual Mode with validation
-                    if (manualSize < longestWord) {
-                        // Force upgrade if too small for longest word
-                         calcSize = longestWord + 1; // +1 padding
-                    } else {
-                        calcSize = Math.max(manualSize, 10); // Min 10
-                    }
-                    // Cap max
+                    if (manualSize < longestWord) calcSize = longestWord + 1; else calcSize = Math.max(manualSize, 10);
                     calcSize = Math.min(25, calcSize);
                 } else {
-                    // Auto Mode
-                    // Ensure grid is at least bigger than the longest word (+2 padding)
-                    calcSize = Math.max(11, longestWord + 2, calcSize);
-                    // Cap at reasonable max to prevent performance issues on mobile
-                    calcSize = Math.min(20, calcSize);
+                    calcSize = Math.max(11, longestWord + 2, calcSize); calcSize = Math.min(20, calcSize);
                 }
 
-                // Determine ID: Are we editing or creating?
                 let customId;
-                if (STAGES[state.stage.id] && STAGES[state.stage.id].isCustom && ui.editButtonsRow.style.display !== 'none') {
-                    // Update existing
-                    customId = state.stage.id;
-                } else {
-                    // Create new
-                    customId = 'custom_' + Date.now();
-                }
+                if (STAGES[state.stage.id] && STAGES[state.stage.id].isCustom && ui.editButtonsRow.style.display !== 'none') customId = state.stage.id;
+                else customId = 'custom_' + Date.now();
 
-                STAGES[customId] = {
-                    id: customId,
-                    name: title,
-                    description: '自訂生詞挑戰',
-                    gridSize: calcSize,
-                    directions: [[0, 1], [1, 0], [1, 1]],
-                    words: words,
-                    targetCount: words.length,
-                    brainTip: '自訂挑戰',
-                    isCustom: true
-                };
+                STAGES[customId] = { id: customId, name: title, description: '自訂生詞挑戰', gridSize: calcSize, directions: [[0, 1], [1, 0], [1, 1]], words: words, targetCount: words.length, brainTip: '自訂挑戰', isCustom: true };
 
-                // Update select: if exists update text, else add
                 let option = ui.stageSelect.querySelector(`option[value="${customId}"]`);
-                if (option) {
-                    option.text = `★ ${title}`;
-                } else {
-                    option = document.createElement('option');
-                    option.value = customId;
-                    option.text = `★ ${title}`;
-                    ui.stageSelect.add(option);
-                }
+                if (option) option.text = `★ ${title}`;
+                else { option = document.createElement('option'); option.value = customId; option.text = `★ ${title}`; ui.stageSelect.add(option); }
                 
-                ui.stageSelect.value = customId;
-                saveCustomStages(); // Save to localStorage
-
-                initGame(customId);
-                ui.customModal.classList.remove('show');
+                ui.stageSelect.value = customId; saveCustomStages(); initGame(customId); ui.customModal.classList.remove('show');
             });
 
-            // --- Share Logic ---
             ui.btnShare.addEventListener('click', () => {
                 let shareUrl = window.location.origin + window.location.pathname;
-                
-                // If it's a custom stage, encode the data into URL
                 if (state.stage.isCustom) {
-                    const data = {
-                        n: state.stage.name,
-                        w: state.stage.words.join(','),
-                        s: state.stage.gridSize
-                    };
-                    const encoded = toBase64(JSON.stringify(data));
-                    shareUrl += `?custom=${encoded}`;
-                } else {
-                    // Standard stage
-                    shareUrl += `?stage=${state.stage.id}`;
-                }
-                
-                ui.shareStageName.textContent = state.stage.name;
-                ui.shareLinkInput.value = shareUrl;
-                ui.shareModal.classList.add('show');
+                    const data = { n: state.stage.name, w: state.stage.words.join(','), s: state.stage.gridSize };
+                    const encoded = toBase64(JSON.stringify(data)); shareUrl += `?custom=${encoded}`;
+                } else { shareUrl += `?stage=${state.stage.id}`; }
+                ui.shareStageName.textContent = state.stage.name; ui.shareLinkInput.value = shareUrl; ui.shareModal.classList.add('show');
             });
-
-            ui.btnCloseShare.addEventListener('click', () => {
-                ui.shareModal.classList.remove('show');
-            });
-
+            ui.btnCloseShare.addEventListener('click', () => { ui.shareModal.classList.remove('show'); });
             ui.btnCopyLink.addEventListener('click', () => {
-                ui.shareLinkInput.select();
-                document.execCommand('copy');
-                const originalText = ui.btnCopyLink.textContent;
-                ui.btnCopyLink.textContent = "已複製！";
-                setTimeout(() => {
-                    ui.btnCopyLink.textContent = originalText;
-                }, 2000);
+                ui.shareLinkInput.select(); document.execCommand('copy');
+                const originalText = ui.btnCopyLink.textContent; ui.btnCopyLink.textContent = "已複製！";
+                setTimeout(() => { ui.btnCopyLink.textContent = originalText; }, 2000);
             });
 
-
-            // --- initPublicCounter: 零設定公共計數器 (Busuanzi) ---
             const initPublicCounter = () => {
                 const display = ui.visitorCountDisplay;
-                
-                // 1. 本機/預覽環境檢測 (Early Return)
-                // 如果是本機檔案 (file:) 或 預覽 Blob (blob:)，直接顯示提示並停止執行
-                if (location.protocol === 'file:' || location.protocol === 'blob:') {
-                    display.textContent = "預覽模式 (無計數)";
-                    display.style.color = '#9CA3AF'; // 灰色
-                    return; // <--- 關鍵修正：停止往下執行
-                }
-
+                if (location.protocol === 'file:' || location.protocol === 'blob:') { display.textContent = "預覽模式 (無計數)"; display.style.color = '#9CA3AF'; return; }
                 display.textContent = "統計中...";
-
-                // 2. 建立 DOM
                 if (!document.getElementById('busuanzi_container_site_uv')) {
-                    const proxyContainer = document.createElement('div');
-                    proxyContainer.style.display = 'none';
-                    proxyContainer.innerHTML = `<span id="busuanzi_container_site_uv"><span id="busuanzi_value_site_uv"></span></span>`;
-                    document.body.appendChild(proxyContainer);
+                    const proxyContainer = document.createElement('div'); proxyContainer.style.display = 'none';
+                    proxyContainer.innerHTML = `<span id="busuanzi_container_site_uv"><span id="busuanzi_value_site_uv"></span></span>`; document.body.appendChild(proxyContainer);
                 }
-
-                // 3. 監聽數值變化
                 const targetNode = document.getElementById('busuanzi_value_site_uv');
                 if (targetNode) {
-                    const observer = new MutationObserver((mutations) => {
-                        if (targetNode.textContent) {
-                            display.textContent = targetNode.textContent;
-                            display.style.color = '#059669'; 
-                        }
-                    });
+                    const observer = new MutationObserver(() => { if (targetNode.textContent) { display.textContent = targetNode.textContent; display.style.color = '#059669'; } });
                     observer.observe(targetNode, { childList: true, characterData: true, subtree: true });
                 }
-
-                // 4. 載入腳本 (加入錯誤處理)
-                const script = document.createElement('script');
-                script.async = true;
-                script.src = "https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js";
-                
-                script.onerror = () => {
-                    display.textContent = "暫無數據"; // 服務連不上時顯示
-                    display.style.color = '#999';
-                };
-
-                // 5. 逾時處理：如果 5 秒後還是 "統計中..."，改為顯示 "服務連線中"
-                setTimeout(() => {
-                    if (display.textContent === "統計中...") {
-                        display.textContent = "服務連線中";
-                    }
-                }, 5000);
-
+                const script = document.createElement('script'); script.async = true; script.src = "https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js";
+                script.onerror = () => { display.textContent = "暫無數據"; display.style.color = '#999'; };
+                setTimeout(() => { if (display.textContent === "統計中...") display.textContent = "服務連線中"; }, 5000);
                 document.head.appendChild(script);
             };
             
-            // --- URL Params Logic (Move here to be sure STAGES is loaded) ---
-            loadCustomStages(); // Load saved custom stages
-
-            // Check URL for direct stage or custom data
+            loadCustomStages();
             const urlParams = new URLSearchParams(window.location.search);
-            const queryStage = urlParams.get('stage');
-            const customData = urlParams.get('custom');
-            
-            let startStageId = 'L2_01'; // Default
+            const queryStage = urlParams.get('stage'); const customData = urlParams.get('custom');
+            let startStageId = 'L2_01';
 
             if (customData) {
                 try {
-                    const data = JSON.parse(fromBase64(customData));
-                    // Construct temp custom stage
-                    const tempId = 'shared_' + Date.now();
-                    
-                    // Calc size if not provided (backward compatibility)
+                    const data = JSON.parse(fromBase64(customData)); const tempId = 'shared_' + Date.now();
                     let size = data.s;
                     if (!size) {
-                        const words = data.w.split(',');
-                         const totalChars = words.join('').length;
-                         const longestWord = Math.max(...words.map(w => w.length));
-                         size = Math.ceil(Math.sqrt(totalChars * 2.5));
-                         size = Math.max(11, longestWord + 2, size);
-                         size = Math.min(20, size);
+                        const words = data.w.split(','); const totalChars = words.join('').length; const longestWord = Math.max(...words.map(w => w.length));
+                         size = Math.ceil(Math.sqrt(totalChars * 2.5)); size = Math.max(11, longestWord + 2, size); size = Math.min(20, size);
                     }
-
-                    STAGES[tempId] = {
-                        id: tempId,
-                        name: data.n,
-                        description: '分享的自訂課程',
-                        gridSize: parseInt(size),
-                        directions: [[0, 1], [1, 0], [1, 1]],
-                        words: data.w.split(','),
-                        targetCount: data.w.split(',').length,
-                        brainTip: '自訂挑戰',
-                        isCustom: true // Mark as custom but maybe not save to local?
-                    };
-                    
-                    // Add to dropdown
-                    const option = document.createElement('option');
-                    option.value = tempId;
-                    option.text = `★ ${data.n} (分享)`;
-                    ui.stageSelect.add(option);
-                    
+                    STAGES[tempId] = { id: tempId, name: data.n, description: '分享的自訂課程', gridSize: parseInt(size), directions: [[0, 1], [1, 0], [1, 1]], words: data.w.split(','), targetCount: data.w.split(',').length, brainTip: '自訂挑戰', isCustom: true };
+                    const option = document.createElement('option'); option.value = tempId; option.text = `★ ${data.n} (分享)`; ui.stageSelect.add(option);
                     startStageId = tempId;
-
-                } catch (e) {
-                    console.error("Failed to parse custom data", e);
-                    alert("無效的分享連結");
-                }
-            } else if (queryStage && STAGES[queryStage]) {
-                startStageId = queryStage;
-            }
+                } catch (e) { console.error("Failed to parse", e); alert("無效的分享連結"); }
+            } else if (queryStage && STAGES[queryStage]) { startStageId = queryStage; }
 
             initGame(startStageId);
             initPublicCounter();
